@@ -1,0 +1,11 @@
+# Archivos y carpetas de Visual Studio
+.vs/
+*.suo
+*.user
+
+# Carpeta de dependencias
+packages/
+
+# Carpetas de compilación
+bin/
+obj/
