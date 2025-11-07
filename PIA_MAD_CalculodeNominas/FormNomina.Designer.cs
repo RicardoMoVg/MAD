@@ -35,9 +35,10 @@
             // 
             this.lblTitulo.AutoSize = true;
             this.lblTitulo.Font = new System.Drawing.Font("Segoe UI", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitulo.Location = new System.Drawing.Point(20, 20);
+            this.lblTitulo.Location = new System.Drawing.Point(15, 16);
+            this.lblTitulo.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblTitulo.Name = "lblTitulo";
-            this.lblTitulo.Size = new System.Drawing.Size(262, 38);
+            this.lblTitulo.Size = new System.Drawing.Size(207, 30);
             this.lblTitulo.TabIndex = 0;
             this.lblTitulo.Text = "Cálculo de Nómina";
             // 
@@ -49,9 +50,10 @@
             this.panelFiltros.Controls.Add(this.lblAnio);
             this.panelFiltros.Controls.Add(this.cmbMes);
             this.panelFiltros.Controls.Add(this.lblMes);
-            this.panelFiltros.Location = new System.Drawing.Point(20, 70);
+            this.panelFiltros.Location = new System.Drawing.Point(15, 57);
+            this.panelFiltros.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.panelFiltros.Name = "panelFiltros";
-            this.panelFiltros.Size = new System.Drawing.Size(960, 60);
+            this.panelFiltros.Size = new System.Drawing.Size(720, 49);
             this.panelFiltros.TabIndex = 1;
             // 
             // btnCalcularNomina
@@ -61,9 +63,10 @@
             this.btnCalcularNomina.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCalcularNomina.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCalcularNomina.ForeColor = System.Drawing.Color.White;
-            this.btnCalcularNomina.Location = new System.Drawing.Point(600, 10);
+            this.btnCalcularNomina.Location = new System.Drawing.Point(450, 8);
+            this.btnCalcularNomina.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnCalcularNomina.Name = "btnCalcularNomina";
-            this.btnCalcularNomina.Size = new System.Drawing.Size(200, 40);
+            this.btnCalcularNomina.Size = new System.Drawing.Size(150, 32);
             this.btnCalcularNomina.TabIndex = 4;
             this.btnCalcularNomina.Text = "Calcular Nómina";
             this.btnCalcularNomina.UseVisualStyleBackColor = false;
@@ -73,18 +76,20 @@
             this.cmbAnio.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbAnio.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbAnio.FormattingEnabled = true;
-            this.cmbAnio.Location = new System.Drawing.Point(350, 15);
+            this.cmbAnio.Location = new System.Drawing.Point(262, 12);
+            this.cmbAnio.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.cmbAnio.Name = "cmbAnio";
-            this.cmbAnio.Size = new System.Drawing.Size(200, 31);
+            this.cmbAnio.Size = new System.Drawing.Size(151, 27);
             this.cmbAnio.TabIndex = 3;
             // 
             // lblAnio
             // 
             this.lblAnio.AutoSize = true;
             this.lblAnio.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAnio.Location = new System.Drawing.Point(295, 18);
+            this.lblAnio.Location = new System.Drawing.Point(221, 15);
+            this.lblAnio.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblAnio.Name = "lblAnio";
-            this.lblAnio.Size = new System.Drawing.Size(38, 20);
+            this.lblAnio.Size = new System.Drawing.Size(32, 15);
             this.lblAnio.TabIndex = 2;
             this.lblAnio.Text = "Año:";
             // 
@@ -93,18 +98,20 @@
             this.cmbMes.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbMes.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbMes.FormattingEnabled = true;
-            this.cmbMes.Location = new System.Drawing.Point(70, 15);
+            this.cmbMes.Location = new System.Drawing.Point(52, 12);
+            this.cmbMes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.cmbMes.Name = "cmbMes";
-            this.cmbMes.Size = new System.Drawing.Size(200, 31);
+            this.cmbMes.Size = new System.Drawing.Size(151, 27);
             this.cmbMes.TabIndex = 1;
             // 
             // lblMes
             // 
             this.lblMes.AutoSize = true;
             this.lblMes.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblMes.Location = new System.Drawing.Point(15, 18);
+            this.lblMes.Location = new System.Drawing.Point(11, 15);
+            this.lblMes.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblMes.Name = "lblMes";
-            this.lblMes.Size = new System.Drawing.Size(41, 20);
+            this.lblMes.Size = new System.Drawing.Size(32, 15);
             this.lblMes.TabIndex = 0;
             this.lblMes.Text = "Mes:";
             // 
@@ -116,13 +123,14 @@
             this.dgvNomina.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvNomina.BackgroundColor = System.Drawing.Color.WhiteSmoke;
             this.dgvNomina.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvNomina.Location = new System.Drawing.Point(20, 150);
+            this.dgvNomina.Location = new System.Drawing.Point(15, 122);
+            this.dgvNomina.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.dgvNomina.Name = "dgvNomina";
             this.dgvNomina.ReadOnly = true;
             this.dgvNomina.RowHeadersWidth = 51;
             this.dgvNomina.RowTemplate.Height = 24;
             this.dgvNomina.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvNomina.Size = new System.Drawing.Size(960, 480);
+            this.dgvNomina.Size = new System.Drawing.Size(720, 390);
             this.dgvNomina.TabIndex = 2;
             // 
             // btnExportar
@@ -132,9 +140,10 @@
             this.btnExportar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnExportar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnExportar.ForeColor = System.Drawing.Color.White;
-            this.btnExportar.Location = new System.Drawing.Point(780, 640);
+            this.btnExportar.Location = new System.Drawing.Point(585, 520);
+            this.btnExportar.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnExportar.Name = "btnExportar";
-            this.btnExportar.Size = new System.Drawing.Size(200, 40);
+            this.btnExportar.Size = new System.Drawing.Size(150, 32);
             this.btnExportar.TabIndex = 3;
             this.btnExportar.Text = "Exportar a CSV";
             this.btnExportar.UseVisualStyleBackColor = false;
@@ -146,27 +155,30 @@
             this.btnVerRecibo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnVerRecibo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnVerRecibo.ForeColor = System.Drawing.Color.White;
-            this.btnVerRecibo.Location = new System.Drawing.Point(570, 640);
+            this.btnVerRecibo.Location = new System.Drawing.Point(428, 520);
+            this.btnVerRecibo.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnVerRecibo.Name = "btnVerRecibo";
-            this.btnVerRecibo.Size = new System.Drawing.Size(200, 40);
+            this.btnVerRecibo.Size = new System.Drawing.Size(150, 32);
             this.btnVerRecibo.TabIndex = 4;
             this.btnVerRecibo.Text = "Ver Recibo";
             this.btnVerRecibo.UseVisualStyleBackColor = false;
             // 
             // FormNomina
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1000, 700);
+            this.ClientSize = new System.Drawing.Size(750, 569);
             this.Controls.Add(this.btnVerRecibo);
             this.Controls.Add(this.btnExportar);
             this.Controls.Add(this.dgvNomina);
             this.Controls.Add(this.panelFiltros);
             this.Controls.Add(this.lblTitulo);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "FormNomina";
             this.Text = "FormNomina";
+            this.Load += new System.EventHandler(this.FormNomina_Load);
             this.panelFiltros.ResumeLayout(false);
             this.panelFiltros.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvNomina)).EndInit();

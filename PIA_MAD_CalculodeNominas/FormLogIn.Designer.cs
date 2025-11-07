@@ -89,7 +89,7 @@
             this.lblUsuario.Name = "lblUsuario";
             this.lblUsuario.Size = new System.Drawing.Size(130, 20);
             this.lblUsuario.TabIndex = 3;
-            this.lblUsuario.Text = "Correo de usuario:";
+            this.lblUsuario.Text = "Nombre de usuario:";
             // 
             // lblPassword
             // 

@@ -53,7 +53,7 @@ namespace PIA_MAD_CalculodeNominas
 
         private void menuItemRecursosHumanos_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("¡Vista de Recursos Humanos! Aquí se gestionarán a los empleados.", "Información");
+            AbrirFormularioEnPanel(new FormRecursosH());
         }
 
         private void menuItemNomina_Click(object sender, EventArgs e)

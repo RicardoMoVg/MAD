@@ -92,7 +92,9 @@
     <Reference Include="Microsoft.IdentityModel.Tokens, Version=7.7.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.Tokens.7.7.1\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
+    <Reference Include="System">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.dll</HintPath>
+    </Reference>
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
@@ -166,6 +168,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormCapturaEspeciales.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormCapturaEspeciales.Designer.cs">
+      <DependentUpon>FormCapturaEspeciales.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormDepartamentos.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -190,15 +198,25 @@
     <Compile Include="FormPrincipal.Designer.cs">
       <DependentUpon>FormPrincipal.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormRecursosH.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRecursosH.Designer.cs">
+      <DependentUpon>FormRecursosH.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormReportes.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormReportes.Designer.cs">
       <DependentUpon>FormReportes.cs</DependentUpon>
     </Compile>
+    <Compile Include="ISRInfo.cs" />
     <Compile Include="NominaDal.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormCapturaEspeciales.resx">
+      <DependentUpon>FormCapturaEspeciales.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormDepartamentos.resx">
       <DependentUpon>FormDepartamentos.cs</DependentUpon>
     </EmbeddedResource>
@@ -210,6 +228,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormPrincipal.resx">
       <DependentUpon>FormPrincipal.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormRecursosH.resx">
+      <DependentUpon>FormRecursosH.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormReportes.resx">
       <DependentUpon>FormReportes.cs</DependentUpon>
