@@ -6,7 +6,9 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using System.Windows.Forms;
+
 
 namespace PIA_MAD_CalculodeNominas
 {
@@ -21,6 +23,8 @@ namespace PIA_MAD_CalculodeNominas
         }
 
         private EstadoFormulario estadoActual;
+
+        private NominasDAL dal = new NominasDAL();
 
         public FormDepartamentos()
         {
@@ -43,40 +47,46 @@ namespace PIA_MAD_CalculodeNominas
 
         private void CargarDepartamentos()
         {
-            // --- ¡AQUÍ VA TU LÓGICA DE SQL SERVER! ---
-            // Llama a tu Stored Procedure: sp_Departamentos_GetAll
-            // Por ahora, usamos datos de ejemplo:
-            DataTable dt = new DataTable();
-            dt.Columns.Add("ID", typeof(int));
-            dt.Columns.Add("Clave", typeof(string));
-            dt.Columns.Add("Nombre", typeof(string));
-            dt.Columns.Add("JefeDeptoID", typeof(int)); // El ID del empleado
-            dt.Columns.Add("Descripcion", typeof(string));
-            dt.Columns.Add("Presupuesto", typeof(decimal));
-
-            dt.Rows.Add(1, "RH-01", "Recursos Humanos", 1, "Gestión de personal", 50000);
-            dt.Rows.Add(2, "TI-01", "Tecnologías de Inf.", 2, "Sistemas y soporte", 120000);
-            dt.Rows.Add(3, "FIN-01", "Finanzas", 1, "Contabilidad y Tesorería", 80000);
-
-            dgvDepartamentos.DataSource = dt;
+            try
+            {
+                using (SqlConnection cnn = dal.GetConnection())
+                {
+                    SqlCommand cmd = new SqlCommand("sp_Departamento_GetAll", cnn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+                    dgvDepartamentos.DataSource = dt;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cargar departamentos: " + ex.Message);
+            }
         }
 
         private void CargarJefes()
         {
-            // --- ¡AQUÍ VA TU LÓGICA DE SQL SERVER! ---
-            // Llama a: sp_Empleados_GetCombo
-            // Por ahora, usamos datos de ejemplo:
-            DataTable dtJefes = new DataTable();
-            dtJefes.Columns.Add("EmpleadoID", typeof(int));
-            dtJefes.Columns.Add("NombreCompleto", typeof(string));
-
-            dtJefes.Rows.Add(1, "Ana López");
-            dtJefes.Rows.Add(2, "Carlos Sánchez");
-
-            cmbJefeDepto.DataSource = dtJefes;
-            cmbJefeDepto.DisplayMember = "NombreCompleto"; // Lo que ve el usuario
-            cmbJefeDepto.ValueMember = "EmpleadoID";       // Lo que guardamos en la BD
-            cmbJefeDepto.SelectedIndex = -1;
+            try
+            {
+                using (SqlConnection cnn = dal.GetConnection())
+                {
+                    // Asegúrate que tu SP se llame así
+                    SqlCommand cmd = new SqlCommand("sp_Empleados_GetCombo", cnn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+                    cmbJefeDepto.DataSource = dt;
+                    cmbJefeDepto.DisplayMember = "NombreCompleto";
+                    cmbJefeDepto.ValueMember = "EmpleadoID";
+                    cmbJefeDepto.SelectedIndex = -1;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cargar jefes: " + ex.Message);
+            }
         }
 
         #endregion
@@ -139,7 +149,8 @@ namespace PIA_MAD_CalculodeNominas
             txtNombre.Enabled = habilitar;
             txtDescripcion.Enabled = habilitar;
             // Recomiendo cambiar txtPresupuesto por un NumericUpDown
-            txtPresupuesto.Enabled = habilitar;
+            numPresupuesto.Enabled = habilitar;
+            
             cmbJefeDepto.Enabled = habilitar;
 
             // El ID nunca se edita manualmente
@@ -155,7 +166,7 @@ namespace PIA_MAD_CalculodeNominas
             txtClaveDepto.Clear();
             txtNombre.Clear();
             txtDescripcion.Clear();
-            txtPresupuesto.Clear();
+            numPresupuesto.Value = 0;
             cmbJefeDepto.SelectedIndex = -1; // Deselecciona cualquier elemento
         }
 
@@ -194,55 +205,79 @@ namespace PIA_MAD_CalculodeNominas
         // *** Este era tu btnAgregar_Click, ahora es btnGuardar_Click ***
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            // Lógica de validación de datos
-            if (string.IsNullOrWhiteSpace(txtNombre.Text) || string.IsNullOrWhiteSpace(txtClaveDepto.Text))
+            if (string.IsNullOrWhiteSpace(txtClaveDepto.Text) || string.IsNullOrWhiteSpace(txtNombre.Text))
             {
-                MessageBox.Show("Los campos de Clave y Nombre son obligatorios.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Los campos Clave y Nombre son obligatorios.");
                 return;
             }
 
-            // --- ¡AQUÍ VA TU LÓGICA DE SQL SERVER! ---
-            if (estadoActual == EstadoFormulario.Agregando)
+            try
             {
-                // Llama a tu Stored Procedure: sp_Departamentos_Insert
-                // (pasando txtClaveDepto.Text, txtNombre.Text, cmbJefeDepto.SelectedValue, etc.)
-                MessageBox.Show("¡Registro AGREGADO con éxito! (Simulación)", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else // (estadoActual == EstadoFormulario.Editando)
-            {
-                // Llama a tu Stored Procedure: sp_Departamentos_Update
-                // (pasando txtId.Text, txtClaveDepto.Text, txtNombre.Text, cmbJefeDepto.SelectedValue, etc.)
-                MessageBox.Show("¡Registro MODIFICADO con éxito! (Simulación)", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
+                using (SqlConnection cnn = dal.GetConnection())
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = cnn;
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-            // Simular que la operación fue exitosa
-            CargarDepartamentos(); // Recarga el grid
-            ConfigurarEstado(EstadoFormulario.Navegando);
+                    if (estadoActual == EstadoFormulario.Agregando)
+                        cmd.CommandText = "sp_Departamento_Insert";
+                    else
+                    {
+                        cmd.CommandText = "sp_Departamento_Update";
+                        cmd.Parameters.AddWithValue("@idDepartamento", Convert.ToInt32(txtId.Text));
+                    }
+
+                    cmd.Parameters.AddWithValue("@claveDepto", txtClaveDepto.Text);
+                    cmd.Parameters.AddWithValue("@nombre", txtNombre.Text);
+                    cmd.Parameters.AddWithValue("@idJefeDepartamento", cmbJefeDepto.SelectedValue ?? DBNull.Value); // Manejo de NULL
+                    cmd.Parameters.AddWithValue("@descripcion", txtDescripcion.Text);
+
+                    // --- ¡¡OJO!! Ver la advertencia de abajo ---
+                    cmd.Parameters.AddWithValue("@presupuesto", numPresupuesto.Value);
+
+                    cnn.Open();
+                    cmd.ExecuteNonQuery();
+
+                    MessageBox.Show("¡Registro guardado con éxito!");
+                    CargarDepartamentos();
+                    ConfigurarEstado(EstadoFormulario.Navegando);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al guardar: " + ex.Message);
+            }
         }
 
         private void btnEliminar_Click(object sender, EventArgs e)
         {
-            if (dgvDepartamentos.SelectedRows.Count > 0)
+            if (dgvDepartamentos.SelectedRows.Count == 0) return;
+
+            string nombreDepto = dgvDepartamentos.SelectedRows[0].Cells["Nombre"].Value.ToString();
+            int idDepto = Convert.ToInt32(dgvDepartamentos.SelectedRows[0].Cells["ID"].Value);
+
+            DialogResult result = MessageBox.Show($"¿Eliminar el departamento '{nombreDepto}'?", "Confirmar", MessageBoxButtons.YesNo);
+            if (result != DialogResult.Yes) return;
+
+            try
             {
-                string nombreDepto = dgvDepartamentos.SelectedRows[0].Cells["Nombre"].Value.ToString();
-                string idDepto = dgvDepartamentos.SelectedRows[0].Cells["ID"].Value.ToString();
-
-                DialogResult dialogResult = MessageBox.Show($"¿Está seguro de que desea eliminar el departamento: {nombreDepto}?", "Confirmar eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (dialogResult == DialogResult.Yes)
+                using (SqlConnection cnn = dal.GetConnection())
                 {
-                    // --- ¡AQUÍ VA TU LÓGICA DE SQL SERVER! ---
-                    // Llama a tu Stored Procedure: sp_Departamentos_Delete (pasando idDepto)
-                    MessageBox.Show("¡Registro ELIMINADO con éxito! (Simulación)", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    SqlCommand cmd = new SqlCommand("sp_Departamento_Delete", cnn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@idDepartamento", idDepto);
+                    cnn.Open();
+                    cmd.ExecuteNonQuery();
 
-                    CargarDepartamentos(); // Recarga el grid
+                    MessageBox.Show("¡Departamento eliminado!");
+                    CargarDepartamentos();
                     LimpiarCampos();
                     ConfigurarEstado(EstadoFormulario.Navegando);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Por favor, seleccione una fila para eliminar.", "Selección", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Error al eliminar: " + ex.Message);
             }
         }
 
@@ -269,7 +304,7 @@ namespace PIA_MAD_CalculodeNominas
                 txtClaveDepto.Text = filaSeleccionada.Cells["Clave"].Value.ToString();
                 txtNombre.Text = filaSeleccionada.Cells["Nombre"].Value.ToString();
                 txtDescripcion.Text = filaSeleccionada.Cells["Descripcion"].Value.ToString();
-                txtPresupuesto.Text = filaSeleccionada.Cells["Presupuesto"].Value.ToString();
+                
 
                 // Manejo cuidadoso del ComboBox
                 var idJefe = filaSeleccionada.Cells["JefeDeptoID"].Value;

@@ -75,5 +75,10 @@ namespace PIA_MAD_CalculodeNominas
         {
             this.Close();
         }
+
+        private void puestosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AbrirFormularioEnPanel(new FormPuestos());
+        }
     }
 }

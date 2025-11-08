@@ -27,6 +27,8 @@
             this.menuItemReportes = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemConsultas = new System.Windows.Forms.ToolStripMenuItem();
             this.panelContenedor = new System.Windows.Forms.Panel();
+            this.puestosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.puestosToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.panelMenu.SuspendLayout();
             this.menuStripPrincipal.SuspendLayout();
             this.SuspendLayout();
@@ -73,12 +75,15 @@
             // cerrarSesiónToolStripMenuItem
             // 
             this.cerrarSesiónToolStripMenuItem.Name = "cerrarSesiónToolStripMenuItem";
-            this.cerrarSesiónToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.cerrarSesiónToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.cerrarSesiónToolStripMenuItem.Text = "Cerrar Sesión";
             this.cerrarSesiónToolStripMenuItem.Click += new System.EventHandler(this.cerrarSesionToolStripMenuItem_Click);
             // 
             // menuItemCatalogos
             // 
+            this.menuItemCatalogos.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.puestosToolStripMenuItem,
+            this.puestosToolStripMenuItem1});
             this.menuItemCatalogos.ForeColor = System.Drawing.Color.White;
             this.menuItemCatalogos.Name = "menuItemCatalogos";
             this.menuItemCatalogos.Size = new System.Drawing.Size(87, 20);
@@ -125,6 +130,19 @@
             this.panelContenedor.Size = new System.Drawing.Size(900, 560);
             this.panelContenedor.TabIndex = 1;
             // 
+            // puestosToolStripMenuItem
+            // 
+            this.puestosToolStripMenuItem.Name = "puestosToolStripMenuItem";
+            this.puestosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.puestosToolStripMenuItem.Text = "Departamentos";
+            this.puestosToolStripMenuItem.Click += new System.EventHandler(this.puestosToolStripMenuItem_Click);
+            // 
+            // puestosToolStripMenuItem1
+            // 
+            this.puestosToolStripMenuItem1.Name = "puestosToolStripMenuItem1";
+            this.puestosToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.puestosToolStripMenuItem1.Text = "Puestos";
+            // 
             // FormPrincipal
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -158,5 +176,7 @@
         private System.Windows.Forms.ToolStripMenuItem menuItemReportes;
         private System.Windows.Forms.ToolStripMenuItem menuItemConsultas;
         private System.Windows.Forms.ToolStripMenuItem cerrarSesiónToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem puestosToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem puestosToolStripMenuItem1;
     }
 }
