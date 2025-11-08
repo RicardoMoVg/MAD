@@ -7,29 +7,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-// --- NUEVOS USINGS ---
-using System.Data.SqlClient; // Para conectar a SQL Server
-using System.Configuration; // Para leer el App.config
+using Microsoft.Data.SqlClient; 
 
 namespace PIA_MAD_CalculodeNominas
 {
     public partial class FormNomina : Form
     {
+        // Usamos la clase DAL que ya existe en tu proyecto
+        private NominasDAL dal = new NominasDAL();
+
         public FormNomina()
         {
             InitializeComponent();
-            LlenarCombos();
-            ConfigurarDataGridView(); // Modificaremos esta función
         }
 
-        // Obtenemos la cadena de conexión desde App.config
-        private string GetConnectionString()
+        private void FormNomina_Load(object sender, EventArgs e)
         {
-            return ConfigurationManager.ConnectionStrings["MiConexion"].ConnectionString;
+            LlenarCombos();
+            ConfigurarDataGridView(); // Configuramos el grid al cargar
         }
 
         private void LlenarCombos()
         {
+            // (Tu código para llenar cmbMes y cmbAnio está perfecto)
             string[] meses = {
                 "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
                 "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
@@ -46,253 +46,118 @@ namespace PIA_MAD_CalculodeNominas
         }
 
         // --- MÉTODO MODIFICADO ---
-        // Simplificamos las columnas para mostrar totales. El desglose
-        // se verá en el "Recibo".
+        // Aquí le decimos al DataGridView cómo "mapear" los resultados
+        // que devuelve tu SP maestro (sp_ProcesarNominaMensual)
         private void ConfigurarDataGridView()
         {
-            dgvNomina.Columns.Clear(); // Limpiamos las columnas viejas
-            dgvNomina.Columns.Add("idEmpleado", "No. Empleado");
-            dgvNomina.Columns.Add("NombreCompleto", "Nombre del Empleado");
-            dgvNomina.Columns.Add("FechaPago", "Fecha de Pago");
-            dgvNomina.Columns.Add("SalarioBruto", "Sueldo Bruto");
-            dgvNomina.Columns.Add("TotalPercepciones", "Total Percepciones");
-            dgvNomina.Columns.Add("TotalDeducciones", "Total Deducciones");
-            dgvNomina.Columns.Add("SalarioNeto", "Sueldo Neto a Pagar");
-            dgvNomina.Columns.Add("Banco", "Banco");
-            dgvNomina.Columns.Add("CuentaBancaria", "Cuenta Bancaria");
+            dgvNomina.AutoGenerateColumns = false; // ¡Importante! Controlamos las columnas
+            dgvNomina.Columns.Clear();
 
-            // Ocultamos el ID, pero lo necesitamos para "Ver Recibo"
-            dgvNomina.Columns["idEmpleado"].Visible = false;
+            // Columna 1: ID (Oculta)
+            dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "idEmpleado",
+                HeaderText = "No. Empleado",
+                DataPropertyName = "NumEmpleado", // Mapea a la columna "NumEmpleado" del SP
+                Visible = false
+            });
 
-            // Formato de moneda
-            dgvNomina.Columns["SalarioBruto"].DefaultCellStyle.Format = "C2";
-            dgvNomina.Columns["TotalPercepciones"].DefaultCellStyle.Format = "C2";
-            dgvNomina.Columns["TotalDeducciones"].DefaultCellStyle.Format = "C2";
-            dgvNomina.Columns["SalarioNeto"].DefaultCellStyle.Format = "C2";
+            // Columna 2: Nombre
+            dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "NombreCompleto",
+                HeaderText = "Nombre del Empleado",
+                DataPropertyName = "Nombre", // Mapea a la columna "Nombre" del SP
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            });
+
+            // Columna 3: Neto a Pagar
+            dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "SalarioNeto",
+                HeaderText = "Sueldo Neto a Pagar",
+                DataPropertyName = "NetoAPagar", // Mapea a la columna "NetoAPagar" del SP
+                DefaultCellStyle = new DataGridViewCellStyle { Format = "C2" } // Formato Moneda
+            });
+
+            // Columna 4: Banco
+            dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Banco",
+                HeaderText = "Banco",
+                DataPropertyName = "Banco" // Mapea a la columna "Banco" del SP
+            });
+
+            // Columna 5: Cuenta
+            dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "CuentaBancaria",
+                HeaderText = "Cuenta Bancaria",
+                DataPropertyName = "Cuenta" // Mapea a la columna "Cuenta" del SP
+            });
         }
 
-        // --- MÉTODO MODIFICADO ---
-        // ¡Aquí ocurre la magia! Reemplazamos la simulación
-        // --- REEMPLAZA TU MÉTODO EXISTENTE CON ESTE ---
-
+        // --- ¡¡ESTE ES EL CÓDIGO FINAL PARA CALCULAR!! ---
+        // Llamamos al SP Maestro (sp_ProcesarNominaMensual)
         private void btnCalcularNomina_Click(object sender, EventArgs e)
         {
+            // 1. Validar entradas
+            if (cmbMes.SelectedItem == null || cmbAnio.SelectedItem == null)
+            {
+                MessageBox.Show("Por favor, seleccione un mes y un año.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int mes = cmbMes.SelectedIndex + 1;
+            int anio = (int)cmbAnio.SelectedItem;
+
+            this.Cursor = Cursors.WaitCursor; // Poner cursor de espera
+            dgvNomina.DataSource = null; // Limpiar datos viejos
+
             try
             {
-                dgvNomina.Rows.Clear(); // Limpiamos datos anteriores
-
-                // 1. OBTENER FECHA Y DATOS GLOBALES
-                int mes = cmbMes.SelectedIndex + 1;
-                int anio = (int)cmbAnio.SelectedItem;
-                DateTime fechaCalculo = new DateTime(anio, mes, DateTime.DaysInMonth(anio, mes));
-
-                // --- NUEVO: Cargamos la tabla de ISR en memoria ---
-                CargarTablaISR(fechaCalculo);
-                if (tablaISRGlobal.Count == 0)
+                // Usamos la conexión de nuestra clase DAL
+                using (SqlConnection cnn = dal.GetConnection())
                 {
-                    MessageBox.Show("Error fatal: No se pudo cargar la tabla de ISR.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    // 2. Llamar al SP MAESTRO
+                    using (SqlCommand cmd = new SqlCommand("sp_ProcesarNominaMensual", cnn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Mes", mes);
+                        cmd.Parameters.AddWithValue("@Anio", anio);
+
+                        // ¡Importante! Darle más tiempo al SP para que trabaje.
+                        // El cálculo de N empleados puede tardar más de 30 seg.
+                        cmd.CommandTimeout = 300; // 5 minutos
+
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dtReporte = new DataTable();
+
+                        cnn.Open();
+                        da.Fill(dtReporte); // El SP devuelve la tabla del reporte final
+
+                        // 4. Mostrar resultados en el grid
+                        dgvNomina.DataSource = dtReporte;
+
+                        MessageBox.Show($"Nómina para {cmbMes.SelectedItem} {anio} calculada y guardada exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
                 }
-
-                // --- NUEVO: Obtenemos el Salario Mínimo (Asumimos Zona 'A' General) ---
-                decimal salarioMinimo = ObtenerSalarioMinimo("A", fechaCalculo);
-
-                // 2. OBTENER EMPLEADOS ACTIVOS
-                DataTable empleados = ObtenerEmpleadosActivos();
-                if (empleados.Rows.Count == 0)
-                {
-                    MessageBox.Show("No se encontraron empleados activos.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                // 3. INICIAR CÁLCULO POR EMPLEADO
-                foreach (DataRow empRow in empleados.Rows)
-                {
-                    // --- A. OBTENER DATOS BÁSICOS DEL EMPLEADO ---
-                    int idEmpleado = Convert.ToInt32(empRow["idEmpleado"]);
-                    string nombre = empRow["nombreCompleto"].ToString();
-                    string banco = empRow["banco"].ToString();
-                    string cuenta = empRow["numCuenta"].ToString();
-                    DateTime fechaContratacion = Convert.ToDateTime(empRow["FechaContratacion"]);
-                    decimal salarioDiario = ObtenerSalarioDiario(idEmpleado, fechaCalculo);
-
-                    // --- B. CÁLCULO DE DÍAS A PAGAR ---
-                    int diasDelMes = DateTime.DaysInMonth(anio, mes);
-                    int diasBase = diasDelMes; // Días base para cálculo de bonos
-
-                    // Prorrateo por contratación reciente
-                    if (fechaContratacion.Year == anio && fechaContratacion.Month == mes)
-                    {
-                        diasBase = diasDelMes - fechaContratacion.Day + 1;
-                    }
-                    else if (fechaContratacion > fechaCalculo)
-                    {
-                        continue; // Empleado aún no contratado. Saltar.
-                    }
-
-                    // --- NUEVO: Obtenemos faltas ---
-                    int numFaltas = ObtenerFaltas(idEmpleado, mes, anio);
-                    int diasPagados = diasBase - numFaltas;
-                    if (diasPagados < 0) diasPagados = 0;
-
-                    // --- C. CÁLCULO DE PERCEPCIONES ---
-                    decimal sueldoBrutoPagado = salarioDiario * diasPagados; // Esta es la percepción "Sueldo"
-                    decimal sueldoMensualBase = salarioDiario * diasDelMes; // Base para bonos
-
-                    // Bonos y Despensa
-                    decimal bonoPuntualidad = sueldoMensualBase * 0.06m;
-                    decimal bonoAsistencia = sueldoMensualBase * 0.10m;
-                    decimal bonoProductividad = sueldoMensualBase * 0.08m;
-                    decimal despensa = sueldoMensualBase * 0.14m;
-
-                    // Reglas de Faltas para Bonos
-                    if (numFaltas > 0)
-                    {
-                        // Regla: ((bono / 30) * días trabajados)
-                        bonoPuntualidad = (bonoPuntualidad / diasDelMes) * diasPagados;
-                        bonoAsistencia = (bonoAsistencia / diasDelMes) * diasPagados;
-                        // Regla: "si tiene falta no se entrega"
-                        bonoProductividad = 0;
-                    }
-
-                    // Percepciones Anuales (Aguinaldo y Prima Vac.)
-                    decimal aguinaldo = 0;
-                    if (mes == 12) // Aguinaldo solo en Diciembre
-                    {
-                        aguinaldo = salarioDiario * 25; // Regla: 25 días
-                    }
-
-                    decimal primaVacacional = 0;
-                    int antiguedadAnios = anio - fechaContratacion.Year;
-                    if (fechaContratacion.AddYears(antiguedadAnios) > fechaCalculo) antiguedadAnios--;
-
-                    // Si su aniversario es ESTE MES y tiene al menos 1 año
-                    if (fechaContratacion.Month == mes && antiguedadAnios > 0)
-                    {
-                        int diasVacaciones = ObtenerDiasVacaciones(antiguedadAnios);
-                        primaVacacional = (salarioDiario * diasVacaciones) * 0.28m; // Regla: 28%
-                    }
-
-                    // Conceptos Especiales (Préstamos, Bonos únicos)
-                    (decimal perEspeciales, decimal dedEspeciales) = ObtenerConceptosProgramados(idEmpleado, mes, anio, sueldoBrutoPagado);
-
-                    // Suma Total de Percepciones (para el DGV)
-                    decimal totalPercepciones = bonoPuntualidad + bonoAsistencia + bonoProductividad + despensa + aguinaldo + primaVacacional + perEspeciales;
-
-                    // --- D. CÁLCULO DE DEDUCCIONES ---
-                    decimal deduccionIMSS = 0;
-                    decimal deduccionISR = 0;
-                    bool esSalarioMinimo = (salarioDiario <= salarioMinimo);
-
-                    if (!esSalarioMinimo)
-                    {
-                        // Cálculo IMSS
-                        decimal sdi = salarioDiario * 1.0493m; // Salario Diario Integrado
-                        deduccionIMSS = (sdi * diasDelMes) * 0.04m; // Regla: (SDI * días) * 4%
-
-                        // Cálculo ISR
-                        // La base gravable es todo lo que suma, menos lo que resta (IMSS)
-                        decimal baseGravableISR = (sueldoBrutoPagado + totalPercepciones) - deduccionIMSS;
-                        if (baseGravableISR < 0) baseGravableISR = 0;
-
-                        deduccionISR = CalcularISR(baseGravableISR);
-                    }
-
-                    // Suma Total de Deducciones (para el DGV)
-                    decimal totalDeducciones = deduccionIMSS + deduccionISR + dedEspeciales;
-
-                    // --- E. CÁLCULO FINAL ---
-                    decimal sueldoNeto = (sueldoBrutoPagado + totalPercepciones) - totalDeducciones;
-
-                    // --- F. AGREGAR AL DATAGRIDVIEW ---
-                    dgvNomina.Rows.Add(
-                        idEmpleado,
-                        nombre,
-                        fechaCalculo.ToString("dd/MM/yyyy"),
-                        sueldoBrutoPagado,     // Columna "Sueldo Bruto"
-                        totalPercepciones, // Columna "Total Percepciones"
-                        totalDeducciones,  // Columna "Total Deducciones"
-                        sueldoNeto,        // Columna "Sueldo Neto a Pagar"
-                        banco,
-                        cuenta
-                    );
-                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Error de SQL al procesar la nómina: " + ex.Message, "Error de Base de Datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al calcular la nómina: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error inesperado: " + ex.Message, "Error de Aplicación", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        #region === MÉTODOS DE ACCESO A DATOS (NUEVOS) ===
-
-        private DataTable ObtenerEmpleadosActivos()
-        {
-            DataTable dt = new DataTable();
-            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+            finally
             {
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerEmpleadosActivos", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    conn.Open();
-                    SqlDataAdapter da = new SqlDataAdapter(cmd);
-                    da.Fill(dt);
-                }
+                this.Cursor = Cursors.Default; // Devolver el cursor a la normalidad
             }
-            return dt;
         }
 
-        private decimal ObtenerSalarioDiario(int idEmpleado, DateTime fechaCalculo)
-        {
-            decimal salario = 0;
-            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
-            {
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerSalarioDiario", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado);
-                    cmd.Parameters.AddWithValue("@fechaCalculo", fechaCalculo);
-
-                    conn.Open();
-                    object result = cmd.ExecuteScalar(); // ExecuteScalar es perfecto para un solo valor
-                    if (result != null && result != DBNull.Value)
-                    {
-                        salario = Convert.ToDecimal(result);
-                    }
-                }
-            }
-            return salario;
-        }
-
-        private (decimal TotalPercepciones, decimal TotalDeducciones) CalcularPercepcionesDeducciones(int idEmpleado, decimal sueldoBruto)
-        {
-            decimal totalPer = 0;
-            decimal totalDed = 0;
-
-            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
-            {
-                using (SqlCommand cmd = new SqlCommand("sp_CalcularConceptos", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado);
-                    cmd.Parameters.AddWithValue("@SueldoBruto", sueldoBruto);
-
-                    conn.Open();
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            totalPer = Convert.ToDecimal(reader["TotalPercepciones"]);
-                            totalDed = Convert.ToDecimal(reader["TotalDeducciones"]);
-                        }
-                    }
-                }
-            }
-            return (totalPer, totalDed); // Retorna una tupla con los dos valores
-        }
-
-        #endregion
-
+        // --- (Tus métodos btnExportar_Click y btnVerRecibo_Click están bien, los dejas) ---
         private void btnExportar_Click(object sender, EventArgs e)
         {
             // Lógica para exportar el DataGridView a un archivo CSV
@@ -325,7 +190,9 @@ namespace PIA_MAD_CalculodeNominas
                         {
                             if (dgvNomina.Columns[cell.ColumnIndex].Visible)
                             {
-                                cells.Add(cell.Value.ToString().Replace(",", "")); // Quitar comas para CSV
+                                // Asegurarse de que el valor no sea nulo antes de llamar a ToString
+                                string cellValue = cell.Value != null ? cell.Value.ToString() : "";
+                                cells.Add(cellValue.Replace(",", "")); // Quitar comas para CSV
                             }
                         }
                         sb.AppendLine(string.Join(",", cells));
@@ -350,245 +217,13 @@ namespace PIA_MAD_CalculodeNominas
                 // Obtenemos el ID del empleado de la fila oculta
                 int idEmpleado = Convert.ToInt32(dgvNomina.SelectedRows[0].Cells["idEmpleado"].Value);
 
-                // Aquí abrirías un nuevo formulario para el recibo
                 MessageBox.Show($"Simulando generación de recibo para el Empleado ID: {idEmpleado}");
-
-                // (Próximo paso)
-                // FormRecibo recibo = new FormRecibo(idEmpleado, (int)cmbAnio.SelectedItem, cmbMes.SelectedIndex + 1);
-                // recibo.ShowDialog();
+                // (Aquí abrirías tu formulario de recibo)
             }
             else
             {
                 MessageBox.Show("Por favor, seleccione un empleado de la lista para ver su recibo.", "Selección", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-
-        private void FormNomina_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        // --- Pega esto dentro de tu clase FormNomina.cs ---
-
-        // Variable global en el formulario para guardar la tabla de ISR y no leerla mil veces
-        private List<RenglonISR> tablaISRGlobal = new List<RenglonISR>();
-
-        /// <summary>
-        /// Carga la tabla de ISR desde la BD y la guarda en la variable global.
-        /// Debes llamar esto ANTES de empezar a calcular la nómina.
-        /// </summary>
-        private void CargarTablaISR(DateTime fechaCalculo)
-        {
-            tablaISRGlobal.Clear(); // Limpia datos anteriores
-
-            using (SqlConnection conn = new SqlConnection(GetConnectionString()))
-            {
-                using (SqlCommand cmd = new SqlCommand("sp_ObtenerTablaISR", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    // Usamos el primer día del mes para asegurar la vigencia
-                    cmd.Parameters.AddWithValue("@Vigencia", new DateTime(fechaCalculo.Year, fechaCalculo.Month, 1));
-
-                    conn.Open();
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            tablaISRGlobal.Add(new RenglonISR
-                            {
-                                LimiteInferior = Convert.ToDecimal(reader["LimiteInferior"]),
-                                CuotaFija = Convert.ToDecimal(reader["CuotaFija"]),
-                                PorcentajeSobreExcedente = Convert.ToDecimal(reader["PorcentajeSobreExcedente"])
-                            });
-                        }
-                    }
-                }
-            }
-
-            // Es vital que la tabla esté ordenada de Menor a Mayor Límite Inferior
-            tablaISRGlobal = tablaISRGlobal.OrderBy(r => r.LimiteInferior).ToList();
-        }
-
-
-        /// <summary>
-        /// Calcula el ISR basado en la tabla progresiva.
-        /// </summary>
-        /// <param name="baseGravable">Es el Sueldo Bruto MENOS las deducciones que no juegan para ISR (como IMSS)</param>
-        /// <returns>El impuesto a retener</returns>
-        private decimal CalcularISR(decimal baseGravable)
-        {
-            if (tablaISRGlobal.Count == 0)
-            {
-                // Error: La tabla no se cargó
-                throw new Exception("La tabla de ISR no se ha cargado en memoria.");
-            }
-
-            // 1. Encontrar el renglón (nivel) correcto en la tabla
-            // Buscamos el último renglón donde la base gravable sea MAYOR al límite inferior
-            RenglonISR renglon = tablaISRGlobal
-                .Where(r => baseGravable >= r.LimiteInferior)
-                .OrderByDescending(r => r.LimiteInferior)
-                .FirstOrDefault();
-
-            if (renglon == null)
-            {
-                // Esto pasa si la base gravable es 0 o negativa
-                return 0;
-            }
-
-            // 2. Aplicar la fórmula de la tabla
-            // (Base Gravable - Límite Inferior) * (% Sobre Excedente) + Cuota Fija
-
-            // (Paso 1: Base - Límite Inferior)
-            decimal excedente = baseGravable - renglon.LimiteInferior;
-
-            // (Paso 2: ... * Porcentaje)
-            // (Dividimos entre 100 porque en la BD está como 6.40, 10.88, etc.)
-            decimal impuestoMarginal = excedente * (renglon.PorcentajeSobreExcedente / 100.0m);
-
-            // (Paso 3: ... + Cuota Fija)
-            decimal impuestoTotal = impuestoMarginal + renglon.CuotaFija;
-
-            return impuestoTotal;
-        }
-
-        // --- REEMPLAZA ESTAS 4 FUNCIONES EN FormNomina.cs ---
-
-        private decimal ObtenerSalarioMinimo(string zona, DateTime fecha)
-        {
-            decimal monto = 0;
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(GetConnectionString()))
-                {
-                    // MODIFICADO: Llama al Stored Procedure
-                    using (SqlCommand cmd = new SqlCommand("sp_ObtenerSalarioMinimo", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure; // <- Importante
-                        cmd.Parameters.AddWithValue("@Zona", zona);
-                        cmd.Parameters.AddWithValue("@Fecha", fecha);
-                        conn.Open();
-                        object result = cmd.ExecuteScalar();
-                        if (result != null && result != DBNull.Value)
-                        {
-                            monto = Convert.ToDecimal(result);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al obtener Salario Mínimo: " + ex.Message);
-            }
-            return monto;
-        }
-
-        private int ObtenerFaltas(int idEmpleado, int mes, int anio)
-        {
-            int faltas = 0;
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(GetConnectionString()))
-                {
-                    // MODIFICADO: Llama al Stored Procedure
-                    using (SqlCommand cmd = new SqlCommand("sp_ObtenerFaltas", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure; // <- Importante
-                        cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado);
-                        cmd.Parameters.AddWithValue("@Mes", mes);
-                        cmd.Parameters.AddWithValue("@Anio", anio);
-                        conn.Open();
-                        object result = cmd.ExecuteScalar();
-                        if (result != null && result != DBNull.Value)
-                        {
-                            faltas = Convert.ToInt32(result);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al obtener Faltas: " + ex.Message);
-            }
-            return faltas;
-        }
-
-        private int ObtenerDiasVacaciones(int antiguedadEnAnios)
-        {
-            int dias = 0;
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(GetConnectionString()))
-                {
-                    // MODIFICADO: Llama al Stored Procedure
-                    using (SqlCommand cmd = new SqlCommand("sp_ObtenerDiasVacaciones", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure; // <- Importante
-                        cmd.Parameters.AddWithValue("@Antiguedad", antiguedadEnAnios);
-                        conn.Open();
-                        object result = cmd.ExecuteScalar();
-                        if (result != null && result != DBNull.Value)
-                        {
-                            dias = Convert.ToInt32(result);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al obtener días de vacaciones: " + ex.Message);
-            }
-            return dias;
-        }
-
-        private (decimal totalPer, decimal totalDed) ObtenerConceptosProgramados(int idEmpleado, int mes, int anio, decimal sueldoBruto)
-        {
-            decimal totalPer = 0;
-            decimal totalDed = 0;
-
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(GetConnectionString()))
-                {
-                    // MODIFICADO: Llama al Stored Procedure
-                    using (SqlCommand cmd = new SqlCommand("sp_ObtenerDetalleConceptosProgramados", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure; // <- Importante
-                        cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado);
-                        cmd.Parameters.AddWithValue("@Mes", mes);
-                        cmd.Parameters.AddWithValue("@Anio", anio);
-
-                        conn.Open();
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                string tipo = reader["Tipo"].ToString();
-                                decimal montoFijo = reader["MontoFijo"] != DBNull.Value ? Convert.ToDecimal(reader["MontoFijo"]) : 0;
-                                decimal porcentaje = reader["Porcentaje"] != DBNull.Value ? Convert.ToDecimal(reader["Porcentaje"]) : 0;
-
-                                decimal montoCalculado = montoFijo + (sueldoBruto * (porcentaje / 100.0m));
-
-                                if (tipo == "P")
-                                {
-                                    totalPer += montoCalculado;
-                                }
-                                else if (tipo == "D")
-                                {
-                                    totalDed += montoCalculado;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al obtener conceptos programados: " + ex.Message);
-            }
-
-            return (totalPer, totalDed);
-        }
-
     }
 }

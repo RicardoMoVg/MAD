@@ -290,10 +290,6 @@ namespace PIA_MAD_CalculodeNominas
                     {
                         txtIDEmpleado.Text = reader["idEmpleado"].ToString();
 
-                        // --- ¡CORRECCIÓN IMPORTANTE! ---
-                        // Tu tabla SÓLO tiene 'nombreCompleto'.
-                        // NO podemos separar Nombre, ApellidoP, ApellidoM.
-                        // Asignamos el nombre completo al primer campo.
                         txtNombre.Text = reader["nombreCompleto"].ToString();
                         txtApellidoP.Text = ""; // Dejamos estos vacíos
                         txtApellidoM.Text = ""; // Dejamos estos vacíos
@@ -313,17 +309,13 @@ namespace PIA_MAD_CalculodeNominas
                         txtEstado.Text = reader["estado"].ToString();
                         txtCP.Text = reader["codigoPostal"].ToString();
 
-                        // Estos valores vienen del JOIN con HistorialPuestos
                         cmbDepartamento.SelectedValue = Convert.ToInt32(reader["idDepartamento"]);
                         cmbPuesto.SelectedValue = Convert.ToInt32(reader["idPuesto"]);
                         numSalarioDiario.Value = Convert.ToDecimal(reader["salarioDiario"]);
-                        // numSalarioDI.Value = Convert.ToDecimal(reader["salarioDiarioIntegro"]);
 
-                        // Estos valores vienen de los JOIN con EmpleadoTelefonos
                         txtTelCasa.Text = reader["telefonoCasa"].ToString();
                         txtTelCelular.Text = reader["telefonoCelular"].ToString();
 
-                        // cmbPrepa.SelectedValue = Convert.ToInt32(reader["idPrepa"]);
                     }
                     reader.Close();
                 }
