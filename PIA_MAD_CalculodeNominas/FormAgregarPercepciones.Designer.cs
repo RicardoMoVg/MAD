@@ -48,8 +48,8 @@
             this.gbDatosConcepto = new System.Windows.Forms.GroupBox();
             this.lblValor = new System.Windows.Forms.Label();
             this.gbAcciones = new System.Windows.Forms.GroupBox();
+            this.btnConsultar = new System.Windows.Forms.Button();
             this.lblGridTitle = new System.Windows.Forms.Label();
-            this.btnConsultar = new System.Windows.Forms.Button(); // <-- DECLARACIÓN
             ((System.ComponentModel.ISupportInitialize)(this.dgvConceptos)).BeginInit();
             this.gbDatosConcepto.SuspendLayout();
             this.gbAcciones.SuspendLayout();
@@ -130,7 +130,7 @@
             this.lblFijo.AutoSize = true;
             this.lblFijo.Location = new System.Drawing.Point(195, 80);
             this.lblFijo.Name = "lblFijo";
-            this.lblFijo.Size = new System.Drawing.Size(49, 13);
+            this.lblFijo.Size = new System.Drawing.Size(50, 13);
             this.lblFijo.TabIndex = 8;
             this.lblFijo.Text = "Fijo o no:";
             // 
@@ -170,7 +170,7 @@
             // btnIngresar
             // 
             this.btnIngresar.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnIngresar.Location = new System.Drawing.Point(19, 25);
+            this.btnIngresar.Location = new System.Drawing.Point(19, 19);
             this.btnIngresar.Name = "btnIngresar";
             this.btnIngresar.Size = new System.Drawing.Size(110, 30);
             this.btnIngresar.TabIndex = 13;
@@ -180,7 +180,7 @@
             // 
             // btnLimpiar
             // 
-            this.btnLimpiar.Location = new System.Drawing.Point(19, 65);
+            this.btnLimpiar.Location = new System.Drawing.Point(19, 124);
             this.btnLimpiar.Name = "btnLimpiar";
             this.btnLimpiar.Size = new System.Drawing.Size(110, 30);
             this.btnLimpiar.TabIndex = 14;
@@ -190,7 +190,7 @@
             // 
             // btnEliminar
             // 
-            this.btnEliminar.Location = new System.Drawing.Point(19, 105);
+            this.btnEliminar.Location = new System.Drawing.Point(19, 89);
             this.btnEliminar.Name = "btnEliminar";
             this.btnEliminar.Size = new System.Drawing.Size(110, 30);
             this.btnEliminar.TabIndex = 15;
@@ -198,12 +198,23 @@
             this.btnEliminar.UseVisualStyleBackColor = true;
             this.btnEliminar.Click += new System.EventHandler(this.btnEliminar_Click);
             // 
+            // btnActualizar
+            // 
+            this.btnActualizar = new System.Windows.Forms.Button();
+            this.btnActualizar.Location = new System.Drawing.Point(19, 54);
+            this.btnActualizar.Name = "btnActualizar";
+            this.btnActualizar.Size = new System.Drawing.Size(110, 30);
+            this.btnActualizar.TabIndex = 14; // Ajusta el TabIndex si es necesario
+            this.btnActualizar.Text = "Actualizar";
+            this.btnActualizar.UseVisualStyleBackColor = true;
+            this.btnActualizar.Click += new System.EventHandler(this.btnActualizar_Click);
+            // 
             // dgvConceptos
             // 
             this.dgvConceptos.AllowUserToAddRows = false;
             this.dgvConceptos.AllowUserToDeleteRows = false;
-            this.dgvConceptos.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.dgvConceptos.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvConceptos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvConceptos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -251,10 +262,11 @@
             // gbAcciones
             // 
             this.gbAcciones.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbAcciones.Controls.Add(this.btnConsultar); // <-- AÑADIDO AL GRUPO
+            this.gbAcciones.Controls.Add(this.btnConsultar);
             this.gbAcciones.Controls.Add(this.btnIngresar);
             this.gbAcciones.Controls.Add(this.btnLimpiar);
             this.gbAcciones.Controls.Add(this.btnEliminar);
+            this.gbAcciones.Controls.Add(this.btnActualizar);
             this.gbAcciones.Location = new System.Drawing.Point(623, 12);
             this.gbAcciones.Name = "gbAcciones";
             this.gbAcciones.Size = new System.Drawing.Size(149, 190);
@@ -262,25 +274,25 @@
             this.gbAcciones.TabStop = false;
             this.gbAcciones.Text = "Acciones";
             // 
+            // btnConsultar
+            // 
+            this.btnConsultar.Location = new System.Drawing.Point(19, 159);
+            this.btnConsultar.Name = "btnConsultar";
+            this.btnConsultar.Size = new System.Drawing.Size(110, 30);
+            this.btnConsultar.TabIndex = 16;
+            this.btnConsultar.Text = "Consultar";
+            this.btnConsultar.UseVisualStyleBackColor = true;
+            this.btnConsultar.Click += new System.EventHandler(this.btnConsultar_Click);
+            // 
             // lblGridTitle
             // 
             this.lblGridTitle.AutoSize = true;
             this.lblGridTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblGridTitle.Location = new System.Drawing.Point(12, 221);
             this.lblGridTitle.Name = "lblGridTitle";
-            this.lblGridTitle.Size = new System.Drawing.Size(130, 13);
+            this.lblGridTitle.Size = new System.Drawing.Size(129, 13);
             this.lblGridTitle.TabIndex = 20;
             this.lblGridTitle.Text = "Conceptos Existentes";
-            // 
-            // btnConsultar
-            // 
-            this.btnConsultar.Location = new System.Drawing.Point(19, 145);
-            this.btnConsultar.Name = "btnConsultar";
-            this.btnConsultar.Size = new System.Drawing.Size(110, 30);
-            this.btnConsultar.TabIndex = 16;
-            this.btnConsultar.Text = "Consultar";
-            this.btnConsultar.UseVisualStyleBackColor = true;
-            this.btnConsultar.Click += new System.EventHandler(this.btnConsultar_Click); // <-- EVENTO
             // 
             // FormAgregarPercepciones
             // 
@@ -327,6 +339,7 @@
         private System.Windows.Forms.Label lblValor;
         private System.Windows.Forms.GroupBox gbAcciones;
         private System.Windows.Forms.Label lblGridTitle;
-        private System.Windows.Forms.Button btnConsultar; // <-- DECLARACIÓN
+        private System.Windows.Forms.Button btnConsultar;
+        private System.Windows.Forms.Button btnActualizar;
     }
 }

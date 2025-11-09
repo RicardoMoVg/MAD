@@ -21,6 +21,18 @@ namespace PIA_MAD_CalculodeNominas
             InitializeComponent();
             _form1 = menu;
             this.FormClosing += new FormClosingEventHandler(this.FormCapturaDedPer_FormClosing);
+            this.dgvEmpleados.SelectionChanged += new System.EventHandler(this.dgvEmpleados_SelectionChanged);
+
+            // --- ¡AÑADE ESTA LÍNEA! ---
+            // Asumiendo que tu DateTimePicker se llama 'dtpFecha'
+            this.dtpFecha.ValueChanged += new System.EventHandler(this.dtpFecha_ValueChanged);
+        }
+
+        // --- ¡MÉTODO NUEVO! ---
+        private void dtpFecha_ValueChanged(object sender, EventArgs e)
+        {
+            // Llama al mismo método de actualización
+            ActualizarConceptosDelEmpleado();
         }
 
         private void FormCapturaDedPer_Load(object sender, EventArgs e)
@@ -30,39 +42,42 @@ namespace PIA_MAD_CalculodeNominas
             CargarGridEmpleados();
 
             // --- ¡NUEVO! Cargar el ListBox consolidado ---
-            CargarConceptos();
+            //CargarConceptos();
         }
 
         #region Carga de Datos
 
         // --- ¡NUEVO! Método para cargar un único ListBox ---
-        private void CargarConceptos()
+        private void CargarConceptos(int idEmpleado, int mes, int anio)
         {
             try
             {
                 using (SqlConnection cnn = dal.GetConnection())
                 {
-                    // Traemos todo y opcionalmente ordenamos por tipo
-                    string query = "SELECT idConcepto, NombreConcepto, tipoConcepto FROM v_CatalogoConceptos ORDER BY tipoConcepto, NombreConcepto";
-
-                    using (SqlCommand cmd = new SqlCommand(query, cnn))
+                    // --- ¡CORRECCIÓN! ---
+                    // Llamamos al SP que SÍ existe y que trae los conceptos manuales/programables
+                    using (SqlCommand cmd = new SqlCommand("sp_ObtenerConceptosProgramados", cnn))
                     {
+                        cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado);
+                        cmd.Parameters.AddWithValue("@Mes", mes);
+                        cmd.Parameters.AddWithValue("@Anio", anio);
+                        cmd.CommandType = CommandType.StoredProcedure;
                         SqlDataAdapter da = new SqlDataAdapter(cmd);
                         DataTable dtConceptos = new DataTable();
                         cnn.Open();
                         da.Fill(dtConceptos);
 
-                        // --- Opcional: Crear una columna "Display" ---
-                        // Para que se vea "PERCEPCION: Bono"
+                        // Crear columna combinada para mostrar tipo + nombre
+                        // (Asumiendo que el SP devuelve 'Tipo' y 'Nombre')
                         dtConceptos.Columns.Add("NombreDisplay", typeof(string));
                         foreach (DataRow row in dtConceptos.Rows)
                         {
-                            row["NombreDisplay"] = $"{row["tipoConcepto"].ToString().ToUpper()}: {row["NombreConcepto"]}";
+                            row["NombreDisplay"] = $"{row["Tipo"].ToString().ToUpper()}: {row["nombre"]}";
                         }
 
                         lstConceptos.DataSource = dtConceptos;
-                        lstConceptos.DisplayMember = "NombreDisplay";  // <-- Mostrar el nombre combinado
-                        lstConceptos.ValueMember = "idConcepto";       // <-- El ID oculto
+                        lstConceptos.DisplayMember = "NombreDisplay";
+                        lstConceptos.ValueMember = "idConcepto";
                     }
                 }
             }
@@ -72,7 +87,7 @@ namespace PIA_MAD_CalculodeNominas
             }
             finally
             {
-                lstConceptos.ClearSelected(); // Empezar sin nada seleccionado
+                lstConceptos.ClearSelected();
             }
         }
 
@@ -83,9 +98,9 @@ namespace PIA_MAD_CalculodeNominas
             {
                 using (SqlConnection cnn = dal.GetConnection())
                 {
-                    string query = "SELECT idEmpleado, nombres, apellidoP, apellidoM, Departamento, Puesto FROM v_EmpleadosActivos";
-                    using (SqlCommand cmd = new SqlCommand(query, cnn))
+                    using (SqlCommand cmd = new SqlCommand("sp_ObtenerEmpleadosActivos", cnn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         SqlDataAdapter da = new SqlDataAdapter(cmd);
                         DataTable dtEmpleados = new DataTable();
                         cnn.Open();
@@ -94,8 +109,14 @@ namespace PIA_MAD_CalculodeNominas
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show($"Error al cargar empleados: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar empleados: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
         #endregion
@@ -109,24 +130,17 @@ namespace PIA_MAD_CalculodeNominas
                 MessageBox.Show("Por favor, selecciona un empleado.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            if (!int.TryParse(txtCantidad.Text, out int cantidad) || cantidad <= 0)
+
+            if (lstConceptos.SelectedItems.Count == 0)
             {
-                MessageBox.Show("Por favor, ingresa una cantidad válida (ej. 1).", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Por favor, selecciona al menos un concepto de la lista.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // --- 2. Recolectar todos los conceptos seleccionados ---
-            List<int> conceptosA_Agregar = new List<int>();
-
-            foreach (object item in lstConceptos.SelectedItems)
+            if (!decimal.TryParse(txtCantidad.Text, out decimal monto) || monto <= 0)
             {
-                DataRowView drv = (DataRowView)item;
-                conceptosA_Agregar.Add(Convert.ToInt32(drv[lstConceptos.ValueMember]));
-            }
-
-            if (conceptosA_Agregar.Count == 0)
-            {
-                MessageBox.Show("Por favor, selecciona al menos un concepto de la lista.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                // Asumo que txtCantidad ahora guarda el MONTO (ej. 500.00 de un préstamo)
+                MessageBox.Show("Por favor, ingresa un monto válido.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -134,63 +148,44 @@ namespace PIA_MAD_CalculodeNominas
 
             try
             {
-                // --- 3. Obtener Datos del Empleado y Nómina ---
+                // --- 2. Recolectar Datos ---
                 int idEmpleado = Convert.ToInt32(dgvEmpleados.SelectedRows[0].Cells["idEmpleado"].Value);
-                string nombreEmpleado = dgvEmpleados.SelectedRows[0].Cells["nombres"].Value.ToString();
+                string nombreEmpleado = dgvEmpleados.SelectedRows[0].Cells["nombreCompleto"].Value.ToString();
                 DateTime fecha = dtpFecha.Value;
-                int mes = fecha.Month;
-                int anio = fecha.Year;
-                int idNomina = 0;
 
                 using (SqlConnection cnn = dal.GetConnection())
                 {
                     cnn.Open();
 
-                    // --- 4. Buscar o Crear el Encabezado de Nómina (se hace UNA vez) ---
-                    string queryFindNomina = "SELECT idNomina FROM Nomina WHERE idEmpleado = @idEmp AND Mes = @Mes AND Anio = @Anio";
-                    using (SqlCommand cmdFind = new SqlCommand(queryFindNomina, cnn))
+                    // --- 3. Insertar CADA concepto seleccionado ---
+                    foreach (object item in lstConceptos.SelectedItems)
                     {
-                        cmdFind.Parameters.AddWithValue("@idEmp", idEmpleado);
-                        cmdFind.Parameters.AddWithValue("@Mes", mes);
-                        cmdFind.Parameters.AddWithValue("@Anio", anio);
-                        object result = cmdFind.ExecuteScalar();
-                        if (result != null && result != DBNull.Value)
-                        {
-                            idNomina = Convert.ToInt32(result);
-                        }
-                    }
+                        DataRowView drv = (DataRowView)item;
+                        int idConcepto = Convert.ToInt32(drv[lstConceptos.ValueMember]);
 
-                    if (idNomina == 0)
-                    {
-                        string queryCreateNomina = "INSERT INTO Nomina (idEmpleado, Mes, Anio, FechaCreacion, Estatus) OUTPUT INSERTED.idNomina VALUES (@idEmp, @Mes, @Anio, @Fecha, 'PENDIENTE');";
-                        using (SqlCommand cmdCreateNom = new SqlCommand(queryCreateNomina, cnn))
+                        // --- ¡CORRECCIÓN DE ARQUITECTURA! ---
+                        // Llamamos al SP que SÍ existe para esto
+                        using (SqlCommand cmdInsert = new SqlCommand("sp_InsertarConceptoProgramado", cnn))
                         {
-                            cmdCreateNom.Parameters.AddWithValue("@idEmp", idEmpleado);
-                            cmdCreateNom.Parameters.AddWithValue("@Mes", mes);
-                            cmdCreateNom.Parameters.AddWithValue("@Anio", anio);
-                            cmdCreateNom.Parameters.AddWithValue("@Fecha", fecha);
-                            idNomina = (int)cmdCreateNom.ExecuteScalar();
-                        }
-                    }
+                            cmdInsert.CommandType = CommandType.StoredProcedure;
+                            cmdInsert.Parameters.AddWithValue("@idEmpleado", idEmpleado);
+                            cmdInsert.Parameters.AddWithValue("@idConcepto", idConcepto);
+                            cmdInsert.Parameters.AddWithValue("@Mes", fecha.Month);
+                            cmdInsert.Parameters.AddWithValue("@Anio", fecha.Year);
+                            cmdInsert.Parameters.AddWithValue("@MontoFijo", monto);
 
-                    // --- 5. Insertar TODOS los detalles (se hace en BUCLE) ---
-                    string queryCreateDetalle = "INSERT INTO DetalleNomina (idNomina, idConcepto, Cantidad, FechaCreacion) VALUES (@idNom, @idConc, @Cant, @Fecha)";
+                            // También enviamos un valor NULO para @Porcentaje,
+                            // ya que el SP probablemente también lo espera.
+                            cmdInsert.Parameters.AddWithValue("@Porcentaje", DBNull.Value);
+                            // (Asumo que tu SP 'sp_InsertarConceptoProgramado' recibe estos 5 parámetros)
 
-                    foreach (int idConcepto in conceptosA_Agregar)
-                    {
-                        using (SqlCommand cmdCreateDet = new SqlCommand(queryCreateDetalle, cnn))
-                        {
-                            cmdCreateDet.Parameters.AddWithValue("@idNom", idNomina);
-                            cmdCreateDet.Parameters.AddWithValue("@idConc", idConcepto);
-                            cmdCreateDet.Parameters.AddWithValue("@Cant", cantidad);
-                            cmdCreateDet.Parameters.AddWithValue("@Fecha", fecha);
-                            cmdCreateDet.ExecuteNonQuery();
+                            cmdInsert.ExecuteNonQuery();
                         }
                     }
                 }
 
-                // --- 6. Mensaje Final ---
-                MessageBox.Show($"Se agregaron {conceptosA_Agregar.Count} conceptos a {nombreEmpleado} para el periodo {mes}/{anio}.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // --- 4. Mensaje Final ---
+                MessageBox.Show($"Se agregaron {lstConceptos.SelectedItems.Count} conceptos a {nombreEmpleado} para el periodo {fecha.Month}/{fecha.Year}.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 // Limpiar selecciones
                 txtCantidad.Text = "1";
@@ -199,7 +194,7 @@ namespace PIA_MAD_CalculodeNominas
             }
             catch (SqlException ex)
             {
-                MessageBox.Show("Error de SQL al guardar los detalles: " + ex.Message, "Error de Base de Datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error de SQL al guardar el concepto: " + ex.Message, "Error de Base de Datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
@@ -211,19 +206,47 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-
         #region Métodos de Configuración de Grid (Sin cambios)
 
         private void ConfigurarGridEmpleados()
         {
             dgvEmpleados.AutoGenerateColumns = false;
             dgvEmpleados.Columns.Clear();
-            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn { Name = "idEmpleado", DataPropertyName = "idEmpleado", Visible = false });
-            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn { Name = "nombres", HeaderText = "Nombres", DataPropertyName = "nombres", AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
-            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn { Name = "apellidoP", HeaderText = "Apellido Paterno", DataPropertyName = "apellidoP", AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
-            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn { Name = "apellidoM", HeaderText = "Apellido Materno", DataPropertyName = "apellidoM", AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells });
-            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn { Name = "Departamento", HeaderText = "Departamento", DataPropertyName = "Departamento", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn { Name = "Puesto", HeaderText = "Puesto", DataPropertyName = "Puesto", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+
+            // Columna Oculta
+            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "idEmpleado",
+                DataPropertyName = "idEmpleado", // Coincide con la tabla
+                Visible = false
+            });
+
+            // Columna de Nombre Completo
+            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "nombreCompleto",
+                HeaderText = "Nombre Completo", // Título del grid
+                DataPropertyName = "nombreCompleto", // Coincide con la tabla
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            });
+
+            // Columna de Departamento (Asume que tu SP la devuelve)
+            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Departamento",
+                HeaderText = "Departamento",
+                DataPropertyName = "Departamento", // Asume que el SP usa este alias
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
+            });
+
+            // Columna de Puesto (Asume que tu SP la devuelve)
+            dgvEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Puesto",
+                HeaderText = "Puesto",
+                DataPropertyName = "Puesto", // Asume que el SP usa este alias
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
+            });
         }
 
         #endregion
@@ -231,6 +254,39 @@ namespace PIA_MAD_CalculodeNominas
         private void FormCapturaDedPer_FormClosing(object sender, FormClosingEventArgs e)
         {
             _form1.Show();
+        }
+
+        private void dgvEmpleados_SelectionChanged(object sender, EventArgs e)
+        {
+            ActualizarConceptosDelEmpleado();
+        }
+        // --- ¡MÉTODO NUEVO! ---
+        // Este método se llamará cada vez que cambie el empleado O la fecha
+        private void ActualizarConceptosDelEmpleado()
+        {
+            // 1. Verifica si hay un empleado seleccionado
+            if (dgvEmpleados.SelectedRows.Count == 0)
+            {
+                // No hay empleado, así que limpiamos la lista
+                lstConceptos.DataSource = null;
+                return;
+            }
+
+            // 2. Si hay un empleado, obtenemos todos los datos
+            try
+            {
+                int idEmpleado = Convert.ToInt32(dgvEmpleados.SelectedRows[0].Cells["idEmpleado"].Value);
+                DateTime fechaSeleccionada = dtpFecha.Value;
+                int mes = fechaSeleccionada.Month;
+                int anio = fechaSeleccionada.Year;
+
+                // 3. Llamamos al método CargarConceptos con todos los datos
+                CargarConceptos(idEmpleado, mes, anio);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al intentar actualizar conceptos: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
     }
 }

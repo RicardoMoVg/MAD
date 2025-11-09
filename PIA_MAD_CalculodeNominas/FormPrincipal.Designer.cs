@@ -22,13 +22,16 @@
             this.menuItemUsuario = new System.Windows.Forms.ToolStripMenuItem();
             this.cerrarSesiónToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemCatalogos = new System.Windows.Forms.ToolStripMenuItem();
+            this.puestosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.puestosToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemRecursosHumanos = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemNomina = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemReportes = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemConsultas = new System.Windows.Forms.ToolStripMenuItem();
             this.panelContenedor = new System.Windows.Forms.Panel();
-            this.puestosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.puestosToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.capturaDePercepcionesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.agregarPercepcionesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.capturasEspecialesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panelMenu.SuspendLayout();
             this.menuStripPrincipal.SuspendLayout();
             this.SuspendLayout();
@@ -90,6 +93,19 @@
             this.menuItemCatalogos.Text = "CATALOGOS";
             this.menuItemCatalogos.Click += new System.EventHandler(this.menuItemCatalogos_Click);
             // 
+            // puestosToolStripMenuItem
+            // 
+            this.puestosToolStripMenuItem.Name = "puestosToolStripMenuItem";
+            this.puestosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.puestosToolStripMenuItem.Text = "Departamentos";
+            this.puestosToolStripMenuItem.Click += new System.EventHandler(this.puestosToolStripMenuItem_Click);
+            // 
+            // puestosToolStripMenuItem1
+            // 
+            this.puestosToolStripMenuItem1.Name = "puestosToolStripMenuItem1";
+            this.puestosToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.puestosToolStripMenuItem1.Text = "Puestos";
+            // 
             // menuItemRecursosHumanos
             // 
             this.menuItemRecursosHumanos.ForeColor = System.Drawing.Color.White;
@@ -100,6 +116,10 @@
             // 
             // menuItemNomina
             // 
+            this.menuItemNomina.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.capturaDePercepcionesToolStripMenuItem,
+            this.agregarPercepcionesToolStripMenuItem,
+            this.capturasEspecialesToolStripMenuItem});
             this.menuItemNomina.ForeColor = System.Drawing.Color.White;
             this.menuItemNomina.Name = "menuItemNomina";
             this.menuItemNomina.Size = new System.Drawing.Size(69, 20);
@@ -130,18 +150,26 @@
             this.panelContenedor.Size = new System.Drawing.Size(900, 560);
             this.panelContenedor.TabIndex = 1;
             // 
-            // puestosToolStripMenuItem
+            // capturaDePercepcionesToolStripMenuItem
             // 
-            this.puestosToolStripMenuItem.Name = "puestosToolStripMenuItem";
-            this.puestosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.puestosToolStripMenuItem.Text = "Departamentos";
-            this.puestosToolStripMenuItem.Click += new System.EventHandler(this.puestosToolStripMenuItem_Click);
+            this.capturaDePercepcionesToolStripMenuItem.Name = "capturaDePercepcionesToolStripMenuItem";
+            this.capturaDePercepcionesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
+            this.capturaDePercepcionesToolStripMenuItem.Text = "Captura de Percepciones";
+            this.capturaDePercepcionesToolStripMenuItem.Click += new System.EventHandler(this.capturaDePercepcionesToolStripMenuItem_Click);
             // 
-            // puestosToolStripMenuItem1
+            // agregarPercepcionesToolStripMenuItem
             // 
-            this.puestosToolStripMenuItem1.Name = "puestosToolStripMenuItem1";
-            this.puestosToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
-            this.puestosToolStripMenuItem1.Text = "Puestos";
+            this.agregarPercepcionesToolStripMenuItem.Name = "agregarPercepcionesToolStripMenuItem";
+            this.agregarPercepcionesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
+            this.agregarPercepcionesToolStripMenuItem.Text = "Agregar Percepciones";
+            this.agregarPercepcionesToolStripMenuItem.Click += new System.EventHandler(this.agregarPercepcionesToolStripMenuItem_Click);
+            // 
+            // capturasEspecialesToolStripMenuItem
+            // 
+            this.capturasEspecialesToolStripMenuItem.Name = "capturasEspecialesToolStripMenuItem";
+            this.capturasEspecialesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
+            this.capturasEspecialesToolStripMenuItem.Text = "Capturas Especiales";
+            this.capturasEspecialesToolStripMenuItem.Click += new System.EventHandler(this.capturasEspecialesToolStripMenuItem_Click);
             // 
             // FormPrincipal
             // 
@@ -178,5 +206,8 @@
         private System.Windows.Forms.ToolStripMenuItem cerrarSesiónToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem puestosToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem puestosToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem capturaDePercepcionesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem agregarPercepcionesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem capturasEspecialesToolStripMenuItem;
     }
 }

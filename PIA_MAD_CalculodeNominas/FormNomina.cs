@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Data.SqlClient; // Para conectar a SQL Server
+using System.IO; // <-- AÑADE ESTE
+using iTextSharp.text; // <-- Asegúrate de tener este
+using iTextSharp.text.pdf;
 
 namespace PIA_MAD_CalculodeNominas
 {
@@ -201,20 +204,151 @@ namespace PIA_MAD_CalculodeNominas
 
         private void btnVerRecibo_Click(object sender, EventArgs e)
         {
-            if (dgvNomina.SelectedRows.Count > 0)
-            {
-                // Obtenemos el ID del empleado de la fila (ahora es visible)
-                int idEmpleado = Convert.ToInt32(dgvNomina.SelectedRows[0].Cells["idEmpleado"].Value);
-
-                MessageBox.Show($"Simulando generación de recibo para el Empleado ID: {idEmpleado}");
-
-                // (Próximo paso)
-                // FormRecibo recibo = new FormRecibo(idEmpleado, (int)cmbAnio.SelectedItem, cmbMes.SelectedIndex + 1);
-                // recibo.ShowDialog();
-            }
-            else
+            // --- 1. VALIDAR SELECCIÓN ---
+            if (dgvNomina.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Por favor, seleccione un empleado de la lista para ver su recibo.", "Selección", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // --- 2. OBTENER DATOS DE LA FILA Y COMBOS ---
+            int idEmpleado = Convert.ToInt32(dgvNomina.SelectedRows[0].Cells["idEmpleado"].Value);
+            string nombreEmpleado = dgvNomina.SelectedRows[0].Cells["NombreCompleto"].Value.ToString();
+            int mes = cmbMes.SelectedIndex + 1;
+            int anio = (int)cmbAnio.SelectedItem;
+
+            // --- 3. MOSTRAR DIÁLOGO DE GUARDAR ---
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "PDF files (*.pdf)|*.pdf";
+            sfd.Title = "Guardar Recibo de Nómina";
+            sfd.FileName = $"Recibo_{nombreEmpleado.Replace(" ", "_")}_{cmbMes.SelectedItem}_{anio}.pdf";
+
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                this.Cursor = Cursors.WaitCursor;
+                try
+                {
+                    // --- 4. OBTENER DATOS DEL RECIBO DESDE SQL ---
+                    DataTable dtEncabezado = new DataTable();
+                    DataTable dtDetalle = new DataTable();
+                    int idNomina = 0;
+                    DataRow drEnc; // Declarada aquí para que tenga alcance
+
+                    using (SqlConnection cnn = dal.GetConnection())
+                    {
+                        cnn.Open();
+                        using (SqlCommand cmd = new SqlCommand("sp_ObtenerRecibo_Encabezado", cnn))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado);
+                            cmd.Parameters.AddWithValue("@Mes", mes);
+                            cmd.Parameters.AddWithValue("@Anio", anio);
+                            SqlDataAdapter da = new SqlDataAdapter(cmd);
+                            da.Fill(dtEncabezado);
+                        }
+
+                        if (dtEncabezado.Rows.Count == 0)
+                        {
+                            throw new Exception("No se encontraron datos del recibo. Verifique que la nómina esté calculada y que el empleado tenga un puesto asignado.");
+                        }
+
+                        drEnc = dtEncabezado.Rows[0];
+                        idNomina = Convert.ToInt32(drEnc["idNomina"]);
+
+                        using (SqlCommand cmd = new SqlCommand("sp_ObtenerRecibo_Detalle", cnn))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@idNomina", idNomina);
+                            cmd.Parameters.AddWithValue("@idEmpleado", idEmpleado);
+                            SqlDataAdapter da = new SqlDataAdapter(cmd);
+                            da.Fill(dtDetalle);
+                        }
+                    }
+
+                    // --- 5. CREAR EL DOCUMENTO PDF (SINTAXIS CORREGIDA) ---
+                    iTextSharp.text.Document doc = new iTextSharp.text.Document(iTextSharp.text.PageSize.LETTER);
+                    PdfWriter writer = PdfWriter.GetInstance(doc, new FileStream(sfd.FileName, FileMode.Create));
+                    doc.Open();
+
+                    // --- CORRECCIÓN DE FUENTES ---
+                    // Usamos FontFactory para evitar errores de sintaxis
+                    iTextSharp.text.Font fontTitulo = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18);
+                    iTextSharp.text.Font fontSubTitulo = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+                    iTextSharp.text.Font fontNormal = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+                    iTextSharp.text.Font fontBold = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+
+                    // Título
+                    doc.Add(new iTextSharp.text.Paragraph("Recibo de Nómina", fontTitulo) { Alignment = iTextSharp.text.Element.ALIGN_CENTER });
+                    doc.Add(new iTextSharp.text.Paragraph($"Periodo: {Convert.ToDateTime(drEnc["fechaInicio"]).ToString("dd/MM/yyyy")} - {Convert.ToDateTime(drEnc["fechaFin"]).ToString("dd/MM/yyyy")}", fontSubTitulo) { Alignment = iTextSharp.text.Element.ALIGN_CENTER });
+                    doc.Add(iTextSharp.text.Chunk.NEWLINE);
+
+                    // Datos del Empleado
+                    doc.Add(new iTextSharp.text.Paragraph("Datos del Empleado", fontSubTitulo));
+                    doc.Add(new iTextSharp.text.Paragraph($"No. Empleado: {drEnc["idEmpleado"]}", fontNormal));
+                    doc.Add(new iTextSharp.text.Paragraph($"Nombre: {drEnc["nombreCompleto"]}", fontNormal));
+                    doc.Add(new iTextSharp.text.Paragraph($"Puesto: {drEnc["Puesto"]}", fontNormal));
+                    doc.Add(new iTextSharp.text.Paragraph($"RFC: {drEnc["RFC"]}  |  NSS: {drEnc["NSS"]}", fontNormal));
+                    doc.Add(iTextSharp.text.Chunk.NEWLINE);
+
+                    // --- Tabla de Percepciones y Deducciones ---
+                    PdfPTable tabla = new PdfPTable(3);
+                    tabla.WidthPercentage = 100;
+                    tabla.SetWidths(new float[] { 50f, 25f, 25f });
+
+                    // Asignamos ese color
+                    // --- DESPUÉS (CORREGIDO Y SIN COLOR) ---
+                    // Simplemente añadimos las celdas sin la propiedad BackgroundColor
+                    tabla.AddCell(new PdfPCell(new iTextSharp.text.Phrase("Concepto", fontBold)));
+                    tabla.AddCell(new PdfPCell(new iTextSharp.text.Phrase("Percepciones", fontBold)) { HorizontalAlignment = iTextSharp.text.Element.ALIGN_RIGHT });
+                    tabla.AddCell(new PdfPCell(new iTextSharp.text.Phrase("Deducciones", fontBold)) { HorizontalAlignment = iTextSharp.text.Element.ALIGN_RIGHT });
+
+                    decimal totalPercepciones = 0;
+                    decimal totalDeducciones = 0;
+
+                    foreach (DataRow row in dtDetalle.Rows)
+                    {
+                        tabla.AddCell(new iTextSharp.text.Phrase(row["Concepto"].ToString(), fontNormal));
+                        if (row["Tipo"].ToString() == "P")
+                        {
+                            decimal monto = Convert.ToDecimal(row["Monto"]);
+                            tabla.AddCell(new PdfPCell(new iTextSharp.text.Phrase(monto.ToString("C2"), fontNormal)) { HorizontalAlignment = iTextSharp.text.Element.ALIGN_RIGHT });
+                            tabla.AddCell(new iTextSharp.text.Phrase("", fontNormal));
+                            totalPercepciones += monto;
+                        }
+                        else
+                        {
+                            decimal monto = Convert.ToDecimal(row["Monto"]);
+                            tabla.AddCell(new iTextSharp.text.Phrase("", fontNormal));
+                            tabla.AddCell(new PdfPCell(new iTextSharp.text.Phrase(monto.ToString("C2"), fontNormal)) { HorizontalAlignment = iTextSharp.text.Element.ALIGN_RIGHT });
+                            totalDeducciones += monto;
+                        }
+                    }
+
+                    // Fila de Totales
+                    tabla.AddCell(new PdfPCell(new iTextSharp.text.Phrase("TOTALES", fontBold)) { HorizontalAlignment = iTextSharp.text.Element.ALIGN_RIGHT });
+                    tabla.AddCell(new PdfPCell(new iTextSharp.text.Phrase(totalPercepciones.ToString("C2"), fontBold)) { HorizontalAlignment = iTextSharp.text.Element.ALIGN_RIGHT });
+                    tabla.AddCell(new PdfPCell(new iTextSharp.text.Phrase(totalDeducciones.ToString("C2"), fontBold)) { HorizontalAlignment = iTextSharp.text.Element.ALIGN_RIGHT });
+
+                    doc.Add(tabla);
+                    doc.Add(iTextSharp.text.Chunk.NEWLINE);
+
+                    // Neto a Pagar
+                    decimal neto = totalPercepciones - totalDeducciones;
+                    doc.Add(new iTextSharp.text.Paragraph($"SUELDO NETO A PAGAR: {neto.ToString("C2")}", fontSubTitulo) { Alignment = iTextSharp.text.Element.ALIGN_RIGHT });
+
+                    doc.Close();
+                    writer.Close();
+
+                    this.Cursor = Cursors.Default;
+                    MessageBox.Show("Recibo PDF generado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    System.Diagnostics.Process.Start(sfd.FileName);
+                }
+                catch (Exception ex)
+                {
+                    this.Cursor = Cursors.Default;
+                    MessageBox.Show("Ocurrió un error al generar el PDF: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

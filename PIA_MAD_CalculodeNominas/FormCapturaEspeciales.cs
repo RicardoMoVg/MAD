@@ -37,7 +37,8 @@ namespace PIA_MAD_CalculodeNominas
 
         private string GetConnectionString()
         {
-            return ConfigurationManager.ConnectionStrings["MiConexion"].ConnectionString;
+            // Usamos el nombre que SÍ existe en tu App.config
+            return ConfigurationManager.ConnectionStrings["db_preparatoria_hsr"].ConnectionString;
         }
 
         #region === Llenado de ComboBoxes ===

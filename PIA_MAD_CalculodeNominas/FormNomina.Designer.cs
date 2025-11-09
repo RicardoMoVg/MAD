@@ -51,7 +51,7 @@
             this.panelFiltros.Controls.Add(this.cmbMes);
             this.panelFiltros.Controls.Add(this.lblMes);
             this.panelFiltros.Location = new System.Drawing.Point(15, 57);
-            this.panelFiltros.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.panelFiltros.Margin = new System.Windows.Forms.Padding(2);
             this.panelFiltros.Name = "panelFiltros";
             this.panelFiltros.Size = new System.Drawing.Size(720, 49);
             this.panelFiltros.TabIndex = 1;
@@ -64,12 +64,13 @@
             this.btnCalcularNomina.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCalcularNomina.ForeColor = System.Drawing.Color.White;
             this.btnCalcularNomina.Location = new System.Drawing.Point(450, 8);
-            this.btnCalcularNomina.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnCalcularNomina.Margin = new System.Windows.Forms.Padding(2);
             this.btnCalcularNomina.Name = "btnCalcularNomina";
             this.btnCalcularNomina.Size = new System.Drawing.Size(150, 32);
             this.btnCalcularNomina.TabIndex = 4;
             this.btnCalcularNomina.Text = "Calcular Nómina";
             this.btnCalcularNomina.UseVisualStyleBackColor = false;
+            this.btnCalcularNomina.Click += new System.EventHandler(this.btnCalcularNomina_Click);
             // 
             // cmbAnio
             // 
@@ -77,7 +78,7 @@
             this.cmbAnio.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbAnio.FormattingEnabled = true;
             this.cmbAnio.Location = new System.Drawing.Point(262, 12);
-            this.cmbAnio.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.cmbAnio.Margin = new System.Windows.Forms.Padding(2);
             this.cmbAnio.Name = "cmbAnio";
             this.cmbAnio.Size = new System.Drawing.Size(151, 27);
             this.cmbAnio.TabIndex = 3;
@@ -99,7 +100,7 @@
             this.cmbMes.Font = new System.Drawing.Font("Segoe UI", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbMes.FormattingEnabled = true;
             this.cmbMes.Location = new System.Drawing.Point(52, 12);
-            this.cmbMes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.cmbMes.Margin = new System.Windows.Forms.Padding(2);
             this.cmbMes.Name = "cmbMes";
             this.cmbMes.Size = new System.Drawing.Size(151, 27);
             this.cmbMes.TabIndex = 1;
@@ -124,7 +125,7 @@
             this.dgvNomina.BackgroundColor = System.Drawing.Color.WhiteSmoke;
             this.dgvNomina.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvNomina.Location = new System.Drawing.Point(15, 122);
-            this.dgvNomina.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.dgvNomina.Margin = new System.Windows.Forms.Padding(2);
             this.dgvNomina.Name = "dgvNomina";
             this.dgvNomina.ReadOnly = true;
             this.dgvNomina.RowHeadersWidth = 51;
@@ -141,12 +142,13 @@
             this.btnExportar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnExportar.ForeColor = System.Drawing.Color.White;
             this.btnExportar.Location = new System.Drawing.Point(585, 520);
-            this.btnExportar.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnExportar.Margin = new System.Windows.Forms.Padding(2);
             this.btnExportar.Name = "btnExportar";
             this.btnExportar.Size = new System.Drawing.Size(150, 32);
             this.btnExportar.TabIndex = 3;
             this.btnExportar.Text = "Exportar a CSV";
             this.btnExportar.UseVisualStyleBackColor = false;
+            this.btnExportar.Click += new System.EventHandler(this.btnExportar_Click);
             // 
             // btnVerRecibo
             // 
@@ -156,12 +158,13 @@
             this.btnVerRecibo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnVerRecibo.ForeColor = System.Drawing.Color.White;
             this.btnVerRecibo.Location = new System.Drawing.Point(428, 520);
-            this.btnVerRecibo.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnVerRecibo.Margin = new System.Windows.Forms.Padding(2);
             this.btnVerRecibo.Name = "btnVerRecibo";
             this.btnVerRecibo.Size = new System.Drawing.Size(150, 32);
             this.btnVerRecibo.TabIndex = 4;
             this.btnVerRecibo.Text = "Ver Recibo";
             this.btnVerRecibo.UseVisualStyleBackColor = false;
+            this.btnVerRecibo.Click += new System.EventHandler(this.btnVerRecibo_Click);
             // 
             // FormNomina
             // 
@@ -175,7 +178,7 @@
             this.Controls.Add(this.panelFiltros);
             this.Controls.Add(this.lblTitulo);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "FormNomina";
             this.Text = "FormNomina";
             this.Load += new System.EventHandler(this.FormNomina_Load);

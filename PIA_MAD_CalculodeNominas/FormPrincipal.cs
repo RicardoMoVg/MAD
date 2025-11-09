@@ -80,5 +80,22 @@ namespace PIA_MAD_CalculodeNominas
         {
             AbrirFormularioEnPanel(new FormPuestos());
         }
+
+        private void capturaDePercepcionesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Le pasamos "this" (la instancia actual de FormPrincipal) al constructor
+            AbrirFormularioEnPanel(new FormCapturaDedPer(this));
+        }
+
+        private void agregarPercepcionesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Hacemos lo mismo aquí
+            AbrirFormularioEnPanel(new FormAgregarPercepciones(this));
+        }
+
+        private void capturasEspecialesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AbrirFormularioEnPanel(new FormCapturaEspeciales());
+        }
     }
 }
