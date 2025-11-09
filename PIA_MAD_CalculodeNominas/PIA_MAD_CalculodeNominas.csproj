@@ -168,6 +168,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormAgregarPercepciones.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormAgregarPercepciones.Designer.cs">
+      <DependentUpon>FormAgregarPercepciones.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormCapturaDedPer.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -226,6 +232,9 @@
     <Compile Include="NominaDal.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormAgregarPercepciones.resx">
+      <DependentUpon>FormAgregarPercepciones.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormCapturaDedPer.resx">
       <DependentUpon>FormCapturaDedPer.cs</DependentUpon>
     </EmbeddedResource>
