@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.Data.SqlClient; 
+using Microsoft.Data.SqlClient; // Para conectar a SQL Server
 
 namespace PIA_MAD_CalculodeNominas
 {
@@ -15,6 +15,9 @@ namespace PIA_MAD_CalculodeNominas
     {
         // Usamos la clase DAL que ya existe en tu proyecto
         private NominasDAL dal = new NominasDAL();
+
+        // Variable para guardar los datos del grid para exportar
+        private DataTable dtReporteNomina;
 
         public FormNomina()
         {
@@ -29,7 +32,7 @@ namespace PIA_MAD_CalculodeNominas
 
         private void LlenarCombos()
         {
-            // (Tu código para llenar cmbMes y cmbAnio está perfecto)
+            // Tu código para llenar cmbMes y cmbAnio está perfecto
             string[] meses = {
                 "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
                 "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
@@ -45,24 +48,22 @@ namespace PIA_MAD_CalculodeNominas
             cmbAnio.SelectedItem = anioActual;
         }
 
-        // --- MÉTODO MODIFICADO ---
-        // Aquí le decimos al DataGridView cómo "mapear" los resultados
-        // que devuelve tu SP maestro (sp_ProcesarNominaMensual)
         private void ConfigurarDataGridView()
         {
-            dgvNomina.AutoGenerateColumns = false; // ¡Importante! Controlamos las columnas
+            // Este método define las columnas que coinciden con la salida
+            // de nuestro SP maestro sp_ProcesarNominaMensual
+
+            dgvNomina.AutoGenerateColumns = false;
             dgvNomina.Columns.Clear();
 
-            // Columna 1: ID (Oculta)
             dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "idEmpleado",
                 HeaderText = "No. Empleado",
                 DataPropertyName = "NumEmpleado", // Mapea a la columna "NumEmpleado" del SP
-                Visible = false
+                Visible = true // Lo hacemos visible
             });
 
-            // Columna 2: Nombre
             dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "NombreCompleto",
@@ -71,7 +72,6 @@ namespace PIA_MAD_CalculodeNominas
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
 
-            // Columna 3: Neto a Pagar
             dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "SalarioNeto",
@@ -80,7 +80,6 @@ namespace PIA_MAD_CalculodeNominas
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "C2" } // Formato Moneda
             });
 
-            // Columna 4: Banco
             dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Banco",
@@ -88,7 +87,6 @@ namespace PIA_MAD_CalculodeNominas
                 DataPropertyName = "Banco" // Mapea a la columna "Banco" del SP
             });
 
-            // Columna 5: Cuenta
             dgvNomina.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "CuentaBancaria",
@@ -113,6 +111,7 @@ namespace PIA_MAD_CalculodeNominas
 
             this.Cursor = Cursors.WaitCursor; // Poner cursor de espera
             dgvNomina.DataSource = null; // Limpiar datos viejos
+            dtReporteNomina = null; // Limpiar la tabla de exportación
 
             try
             {
@@ -127,17 +126,16 @@ namespace PIA_MAD_CalculodeNominas
                         cmd.Parameters.AddWithValue("@Anio", anio);
 
                         // ¡Importante! Darle más tiempo al SP para que trabaje.
-                        // El cálculo de N empleados puede tardar más de 30 seg.
                         cmd.CommandTimeout = 300; // 5 minutos
 
                         SqlDataAdapter da = new SqlDataAdapter(cmd);
-                        DataTable dtReporte = new DataTable();
+                        dtReporteNomina = new DataTable(); // Creamos una nueva tabla
 
                         cnn.Open();
-                        da.Fill(dtReporte); // El SP devuelve la tabla del reporte final
+                        da.Fill(dtReporteNomina); // El SP devuelve la tabla del reporte final
 
                         // 4. Mostrar resultados en el grid
-                        dgvNomina.DataSource = dtReporte;
+                        dgvNomina.DataSource = dtReporteNomina;
 
                         MessageBox.Show($"Nómina para {cmbMes.SelectedItem} {anio} calculada y guardada exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
@@ -160,7 +158,14 @@ namespace PIA_MAD_CalculodeNominas
         // --- (Tus métodos btnExportar_Click y btnVerRecibo_Click están bien, los dejas) ---
         private void btnExportar_Click(object sender, EventArgs e)
         {
-            // Lógica para exportar el DataGridView a un archivo CSV
+            // ¡MEJORA! Usamos la variable dtReporteNomina en lugar de leer el grid.
+            // Es más rápido y seguro.
+            if (dtReporteNomina == null || dtReporteNomina.Rows.Count == 0)
+            {
+                MessageBox.Show("No hay datos para exportar. Por favor, calcule la nómina primero.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "CSV files (*.csv)|*.csv";
             sfd.Title = "Guardar Reporte de Nómina";
@@ -171,36 +176,20 @@ namespace PIA_MAD_CalculodeNominas
                 try
                 {
                     StringBuilder sb = new StringBuilder();
-                    // Encabezados (usando las columnas visibles)
-                    List<string> headers = new List<string>();
-                    foreach (DataGridViewColumn col in dgvNomina.Columns)
-                    {
-                        if (col.Visible)
-                        {
-                            headers.Add(col.HeaderText);
-                        }
-                    }
+
+                    // Encabezados
+                    IEnumerable<string> headers = dtReporteNomina.Columns.Cast<DataColumn>().Select(col => col.ColumnName);
                     sb.AppendLine(string.Join(",", headers));
 
                     // Datos
-                    foreach (DataGridViewRow row in dgvNomina.Rows)
+                    foreach (DataRow row in dtReporteNomina.Rows)
                     {
-                        List<string> cells = new List<string>();
-                        foreach (DataGridViewCell cell in row.Cells)
-                        {
-                            if (dgvNomina.Columns[cell.ColumnIndex].Visible)
-                            {
-                                // Asegurarse de que el valor no sea nulo antes de llamar a ToString
-                                string cellValue = cell.Value != null ? cell.Value.ToString() : "";
-                                cells.Add(cellValue.Replace(",", "")); // Quitar comas para CSV
-                            }
-                        }
-                        sb.AppendLine(string.Join(",", cells));
+                        IEnumerable<string> fields = row.ItemArray.Select(field => field.ToString().Replace(",", ""));
+                        sb.AppendLine(string.Join(",", fields));
                     }
 
                     // Escribir el archivo
                     System.IO.File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
-
                     MessageBox.Show("Reporte exportado a CSV exitosamente.", "Exportación", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
@@ -214,16 +203,22 @@ namespace PIA_MAD_CalculodeNominas
         {
             if (dgvNomina.SelectedRows.Count > 0)
             {
-                // Obtenemos el ID del empleado de la fila oculta
+                // Obtenemos el ID del empleado de la fila (ahora es visible)
                 int idEmpleado = Convert.ToInt32(dgvNomina.SelectedRows[0].Cells["idEmpleado"].Value);
 
                 MessageBox.Show($"Simulando generación de recibo para el Empleado ID: {idEmpleado}");
-                // (Aquí abrirías tu formulario de recibo)
+
+                // (Próximo paso)
+                // FormRecibo recibo = new FormRecibo(idEmpleado, (int)cmbAnio.SelectedItem, cmbMes.SelectedIndex + 1);
+                // recibo.ShowDialog();
             }
             else
             {
                 MessageBox.Show("Por favor, seleccione un empleado de la lista para ver su recibo.", "Selección", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
+        // --- (TODOS LOS MÉTODOS AYUDANTES COMO CalcularISR, ObtenerFaltas, etc. SE HAN ELIMINADO) ---
+        // --- (Porque el SP 'sp_ProcesarNominaMensual' ya hace todo ese trabajo) ---
     }
 }

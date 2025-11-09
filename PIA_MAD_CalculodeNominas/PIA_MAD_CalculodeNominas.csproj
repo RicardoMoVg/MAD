@@ -168,6 +168,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormCapturaDedPer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormCapturaDedPer.Designer.cs">
+      <DependentUpon>FormCapturaDedPer.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormCapturaEspeciales.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -220,6 +226,9 @@
     <Compile Include="NominaDal.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="FormCapturaDedPer.resx">
+      <DependentUpon>FormCapturaDedPer.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormCapturaEspeciales.resx">
       <DependentUpon>FormCapturaEspeciales.cs</DependentUpon>
     </EmbeddedResource>
