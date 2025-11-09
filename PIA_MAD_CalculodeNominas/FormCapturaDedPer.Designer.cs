@@ -30,15 +30,14 @@
         {
             this.lblEmpleados = new System.Windows.Forms.Label();
             this.dgvEmpleados = new System.Windows.Forms.DataGridView();
-            this.lblConceptos = new System.Windows.Forms.Label();
-            this.dgvConceptos = new System.Windows.Forms.DataGridView();
             this.lblCantidad = new System.Windows.Forms.Label();
             this.txtCantidad = new System.Windows.Forms.TextBox();
             this.lblFecha = new System.Windows.Forms.Label();
             this.dtpFecha = new System.Windows.Forms.DateTimePicker();
             this.btnAgregar = new System.Windows.Forms.Button();
+            this.lblConceptos = new System.Windows.Forms.Label();
+            this.lstConceptos = new System.Windows.Forms.ListBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvEmpleados)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvConceptos)).BeginInit();
             this.SuspendLayout();
             // 
             // lblEmpleados
@@ -65,32 +64,6 @@
             this.dgvEmpleados.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvEmpleados.Size = new System.Drawing.Size(760, 180);
             this.dgvEmpleados.TabIndex = 1;
-            // 
-            // lblConceptos
-            // 
-            this.lblConceptos.AutoSize = true;
-            this.lblConceptos.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblConceptos.Location = new System.Drawing.Point(12, 222);
-            this.lblConceptos.Name = "lblConceptos";
-            this.lblConceptos.Size = new System.Drawing.Size(158, 16);
-            this.lblConceptos.TabIndex = 2;
-            this.lblConceptos.Text = "Seleccionar Concepto:";
-            // 
-            // dgvConceptos
-            // 
-            this.dgvConceptos.AllowUserToAddRows = false;
-            this.dgvConceptos.AllowUserToDeleteRows = false;
-            this.dgvConceptos.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.dgvConceptos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvConceptos.Location = new System.Drawing.Point(12, 241);
-            this.dgvConceptos.MultiSelect = false;
-            this.dgvConceptos.Name = "dgvConceptos";
-            this.dgvConceptos.ReadOnly = true;
-            this.dgvConceptos.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvConceptos.Size = new System.Drawing.Size(760, 180);
-            this.dgvConceptos.TabIndex = 3;
             // 
             // lblCantidad
             // 
@@ -140,22 +113,44 @@
             this.btnAgregar.Name = "btnAgregar";
             this.btnAgregar.Size = new System.Drawing.Size(150, 30);
             this.btnAgregar.TabIndex = 8;
-            this.btnAgregar.Text = "Agregar a Nómina";
+            this.btnAgregar.Text = "Aplicar";
             this.btnAgregar.UseVisualStyleBackColor = true;
             this.btnAgregar.Click += new System.EventHandler(this.btnAgregar_Click);
+            // 
+            // lblConceptos
+            // 
+            this.lblConceptos.AutoSize = true;
+            this.lblConceptos.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblConceptos.Location = new System.Drawing.Point(12, 222);
+            this.lblConceptos.Name = "lblConceptos";
+            this.lblConceptos.Size = new System.Drawing.Size(262, 16);
+            this.lblConceptos.TabIndex = 9;
+            this.lblConceptos.Text = "Conceptos (Percepciones y Deducciones):";
+            // 
+            // lstConceptos
+            // 
+            this.lstConceptos.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lstConceptos.FormattingEnabled = true;
+            this.lstConceptos.Location = new System.Drawing.Point(15, 241);
+            this.lstConceptos.Name = "lstConceptos";
+            this.lstConceptos.SelectionMode = System.Windows.Forms.SelectionMode.MultiSimple;
+            this.lstConceptos.Size = new System.Drawing.Size(757, 173);
+            this.lstConceptos.TabIndex = 10;
             // 
             // FormCapturaDedPer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(784, 474);
+            this.Controls.Add(this.lstConceptos);
+            this.Controls.Add(this.lblConceptos);
             this.Controls.Add(this.btnAgregar);
             this.Controls.Add(this.dtpFecha);
             this.Controls.Add(this.lblFecha);
             this.Controls.Add(this.txtCantidad);
             this.Controls.Add(this.lblCantidad);
-            this.Controls.Add(this.dgvConceptos);
-            this.Controls.Add(this.lblConceptos);
             this.Controls.Add(this.dgvEmpleados);
             this.Controls.Add(this.lblEmpleados);
             this.MinimumSize = new System.Drawing.Size(800, 513);
@@ -163,7 +158,6 @@
             this.Text = "Captura de Percepciones y Deducciones";
             this.Load += new System.EventHandler(this.FormCapturaDedPer_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvEmpleados)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvConceptos)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -173,12 +167,12 @@
 
         private System.Windows.Forms.Label lblEmpleados;
         private System.Windows.Forms.DataGridView dgvEmpleados;
-        private System.Windows.Forms.Label lblConceptos;
-        private System.Windows.Forms.DataGridView dgvConceptos;
         private System.Windows.Forms.Label lblCantidad;
         private System.Windows.Forms.TextBox txtCantidad;
         private System.Windows.Forms.Label lblFecha;
         private System.Windows.Forms.DateTimePicker dtpFecha;
         private System.Windows.Forms.Button btnAgregar;
+        private System.Windows.Forms.Label lblConceptos;
+        private System.Windows.Forms.ListBox lstConceptos;
     }
 }
