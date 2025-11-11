@@ -19,7 +19,12 @@ namespace PIA_MAD_CalculodeNominas
 
         private void FormPrincipal_Load(object sender, EventArgs e)
         {
-            // Opcional: Abrir un formulario por defecto
+            // Opcional: Mostrar quién inició sesión
+            // (Asegúrate de tener un Label o un ToolStripStatusLabel para esto)
+            // lblBienvenida.Text = $"Usuario: {SesionUsuario.NombreCompleto} ({SesionUsuario.Rol})";
+
+            // Llamamos a nuestro nuevo método para configurar el menú
+            ConfigurarMenuPorRol();
         }
 
         /// <summary>
@@ -43,7 +48,7 @@ namespace PIA_MAD_CalculodeNominas
 
         private void menuItemUsuario_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("¡Vista de Usuario! Aquí se gestionarán los perfiles.", "Información");
+            AbrirFormularioEnPanel(new FormUsuarios());
         }
 
         private void menuItemCatalogos_Click(object sender, EventArgs e)
@@ -96,6 +101,65 @@ namespace PIA_MAD_CalculodeNominas
         private void capturasEspecialesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AbrirFormularioEnPanel(new FormCapturaEspeciales());
+        }
+
+        private void panelContenedor_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        /// <summary>
+        /// Configura la visibilidad de los menús basados en el rol del usuario
+        /// guardado en la clase SesionUsuario.
+        /// </summary>
+        private void ConfigurarMenuPorRol()
+        {
+            // Asumimos que los nombres de tus menús son los de la imagen/código:
+            // menuItemRecursosHumanos, menuItemNomina, menuItemReportes
+
+            // Ocultar todo lo sensible por defecto
+            menuItemRecursosHumanos.Visible = false;
+            menuItemNomina.Visible = false;
+            menuItemReportes.Visible = false;
+
+            // (Ajusta los nombres de los roles a como los tengas en tu BD)
+            // Ej: "Administrador", "Nómina", "RecursosHumanos", "Consulta"
+
+            string rol = SesionUsuario.Rol;
+
+            switch (rol)
+            {
+                case "Administrador":
+                    // El Admin ve todo
+                    menuItemRecursosHumanos.Visible = true;
+                    menuItemNomina.Visible = true;
+                    menuItemReportes.Visible = true;
+                    break;
+
+                case "Nómina":
+                    // El de Nómina solo ve "NOMINA"
+                    menuItemNomina.Visible = true;
+                    break;
+
+                case "RecursosHumanos":
+                    // El de RRHH ve "RECURSOS HUMANOS" y "REPORTES"
+                    menuItemRecursosHumanos.Visible = true;
+                    menuItemReportes.Visible = true;
+                    break;
+
+                case "Consulta":
+                    // El de "Consulta" (o cualquier otro rol) no ve nada de esto.
+                    // No hacemos nada, ya están ocultos.
+                    break;
+
+                default:
+                    // "Usuario normal" o rol no reconocido
+                    // No se muestra nada sensible.
+                    break;
+            }
+
+            // Los menús "USUARIO", "CATALOGOS" y "CONSULTAS"
+            // se quedan visibles para todos (ya que no los ocultamos).
         }
     }
 }

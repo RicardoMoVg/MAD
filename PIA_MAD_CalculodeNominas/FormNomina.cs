@@ -100,7 +100,8 @@ namespace PIA_MAD_CalculodeNominas
 
         // --- ¡¡ESTE ES EL CÓDIGO FINAL PARA CALCULAR!! ---
         // Llamamos al SP Maestro (sp_ProcesarNominaMensual)
-        private void btnCalcularNomina_Click(object sender, EventArgs e)
+        // --- ¡CAMBIO 1: Añade la palabra 'async' aquí! ---
+        private async void btnCalcularNomina_Click(object sender, EventArgs e)
         {
             // 1. Validar entradas
             if (cmbMes.SelectedItem == null || cmbAnio.SelectedItem == null)
@@ -113,29 +114,35 @@ namespace PIA_MAD_CalculodeNominas
             int anio = (int)cmbAnio.SelectedItem;
 
             this.Cursor = Cursors.WaitCursor; // Poner cursor de espera
-            dgvNomina.DataSource = null; // Limpiar datos viejos
-            dtReporteNomina = null; // Limpiar la tabla de exportación
+            btnCalcularNomina.Enabled = false; // Deshabilitar el botón mientras trabaja
+            dgvNomina.DataSource = null;
+            dtReporteNomina = null;
 
             try
             {
                 // Usamos la conexión de nuestra clase DAL
                 using (SqlConnection cnn = dal.GetConnection())
                 {
-                    // 2. Llamar al SP MAESTRO
                     using (SqlCommand cmd = new SqlCommand("sp_ProcesarNominaMensual", cnn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@Mes", mes);
                         cmd.Parameters.AddWithValue("@Anio", anio);
-
-                        // ¡Importante! Darle más tiempo al SP para que trabaje.
                         cmd.CommandTimeout = 300; // 5 minutos
 
                         SqlDataAdapter da = new SqlDataAdapter(cmd);
-                        dtReporteNomina = new DataTable(); // Creamos una nueva tabla
+                        dtReporteNomina = new DataTable();
 
-                        cnn.Open();
-                        da.Fill(dtReporteNomina); // El SP devuelve la tabla del reporte final
+                        // --- ¡CAMBIO 2: Hacemos el trabajo pesado en un hilo separado! ---
+                        // "await Task.Run" mueve el da.Fill a un hilo secundario,
+                        // liberando el hilo de la UI y evitando el "Deadlock".
+                        await Task.Run(() =>
+                        {
+                            cnn.Open();
+                            da.Fill(dtReporteNomina); // Esta es la parte lenta
+                        });
+
+                        // --- (El código vuelve al hilo de la UI automáticamente) ---
 
                         // 4. Mostrar resultados en el grid
                         dgvNomina.DataSource = dtReporteNomina;
@@ -155,6 +162,7 @@ namespace PIA_MAD_CalculodeNominas
             finally
             {
                 this.Cursor = Cursors.Default; // Devolver el cursor a la normalidad
+                btnCalcularNomina.Enabled = true; // Volver a habilitar el botón
             }
         }
 

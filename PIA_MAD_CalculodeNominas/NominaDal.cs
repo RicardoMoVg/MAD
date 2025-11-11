@@ -40,27 +40,51 @@ namespace PIA_MAD_CalculodeNominas
         // **MÉTODO FALTANTE:** Autenticación para FormLogIn.cs
         public bool ValidarUsuario(string usuario, string contrasena)
         {
-            // Query: Asume una tabla 'Usuarios' con columnas 'NombreUsuario' y 'Contrasena'
-            
-            string query = "SELECT COUNT(1) FROM Usuario WHERE nombres = @Usuario AND contra = @Contrasena AND activo = 1";
+            // 1. LA CONSULTA (AHORA TRAEMOS LOS DATOS, NO UN COUNT)
+            // Asegúrate que tu tabla se llame 'usuario' (como en tu script original)
+            string query = "SELECT idUsuario, nombres, tipoUsuario FROM usuario " +
+                           "WHERE nombres = @Usuario AND contra = @Contrasena AND activo = 1";
 
+            // Usamos tu método GetConnection()
             using (SqlConnection connection = GetConnection())
             {
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    // Usar parámetros es OBLIGATORIO para evitar Inyección SQL.
+                    // Los parámetros (esto estaba bien en tu código)
                     command.Parameters.AddWithValue("@Usuario", usuario);
                     command.Parameters.AddWithValue("@Contrasena", contrasena);
 
                     try
                     {
                         connection.Open();
-                        // ExecuteScalar devuelve el primer valor (el COUNT en este caso).
-                        int count = (int)command.ExecuteScalar();
-                        return count > 0; // Si count es 1 o más, el login es exitoso.
+
+                        // 2. LA EJECUCIÓN (USAMOS ExecuteReader PARA LEER FILAS)
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            // 3. EL RESULTADO (VERIFICAMOS SI 'reader.Read()' ENCONTRÓ ALGO)
+                            if (reader.Read())
+                            {
+                                // ¡Usuario encontrado! Obtenemos sus datos
+                                int id = (int)reader["idUsuario"];
+                                string nombre = reader["nombres"].ToString();
+                                string rol = reader["tipoUsuario"].ToString();
+
+                                // 4. ¡EL PASO CRUCIAL!
+                                // Guardamos los datos en la sesión global
+                                SesionUsuario.IniciarSesion(id, nombre, rol);
+
+                                return true; // Login EXITOSO
+                            }
+                            else
+                            {
+                                // No se encontró ninguna fila que coincida
+                                return false; // Login FALLIDO
+                            }
+                        }
                     }
                     catch (SqlException ex)
                     {
+                        // Manejo de error
                         System.Diagnostics.Debug.WriteLine("Error de autenticación: " + ex.Message);
                         return false;
                     }

@@ -23,15 +23,14 @@
             this.cerrarSesiónToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemCatalogos = new System.Windows.Forms.ToolStripMenuItem();
             this.puestosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.puestosToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemRecursosHumanos = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemNomina = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuItemReportes = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuItemConsultas = new System.Windows.Forms.ToolStripMenuItem();
-            this.panelContenedor = new System.Windows.Forms.Panel();
             this.capturaDePercepcionesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.agregarPercepcionesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.capturasEspecialesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuItemReportes = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuItemConsultas = new System.Windows.Forms.ToolStripMenuItem();
+            this.panelContenedor = new System.Windows.Forms.Panel();
             this.panelMenu.SuspendLayout();
             this.menuStripPrincipal.SuspendLayout();
             this.SuspendLayout();
@@ -85,8 +84,7 @@
             // menuItemCatalogos
             // 
             this.menuItemCatalogos.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.puestosToolStripMenuItem,
-            this.puestosToolStripMenuItem1});
+            this.puestosToolStripMenuItem});
             this.menuItemCatalogos.ForeColor = System.Drawing.Color.White;
             this.menuItemCatalogos.Name = "menuItemCatalogos";
             this.menuItemCatalogos.Size = new System.Drawing.Size(87, 20);
@@ -97,14 +95,8 @@
             // 
             this.puestosToolStripMenuItem.Name = "puestosToolStripMenuItem";
             this.puestosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.puestosToolStripMenuItem.Text = "Departamentos";
+            this.puestosToolStripMenuItem.Text = "Puestos";
             this.puestosToolStripMenuItem.Click += new System.EventHandler(this.puestosToolStripMenuItem_Click);
-            // 
-            // puestosToolStripMenuItem1
-            // 
-            this.puestosToolStripMenuItem1.Name = "puestosToolStripMenuItem1";
-            this.puestosToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
-            this.puestosToolStripMenuItem1.Text = "Puestos";
             // 
             // menuItemRecursosHumanos
             // 
@@ -125,6 +117,27 @@
             this.menuItemNomina.Size = new System.Drawing.Size(69, 20);
             this.menuItemNomina.Text = "NOMINA";
             this.menuItemNomina.Click += new System.EventHandler(this.menuItemNomina_Click);
+            // 
+            // capturaDePercepcionesToolStripMenuItem
+            // 
+            this.capturaDePercepcionesToolStripMenuItem.Name = "capturaDePercepcionesToolStripMenuItem";
+            this.capturaDePercepcionesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
+            this.capturaDePercepcionesToolStripMenuItem.Text = "Captura de Percepciones";
+            this.capturaDePercepcionesToolStripMenuItem.Click += new System.EventHandler(this.capturaDePercepcionesToolStripMenuItem_Click);
+            // 
+            // agregarPercepcionesToolStripMenuItem
+            // 
+            this.agregarPercepcionesToolStripMenuItem.Name = "agregarPercepcionesToolStripMenuItem";
+            this.agregarPercepcionesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
+            this.agregarPercepcionesToolStripMenuItem.Text = "Agregar Percepciones";
+            this.agregarPercepcionesToolStripMenuItem.Click += new System.EventHandler(this.agregarPercepcionesToolStripMenuItem_Click);
+            // 
+            // capturasEspecialesToolStripMenuItem
+            // 
+            this.capturasEspecialesToolStripMenuItem.Name = "capturasEspecialesToolStripMenuItem";
+            this.capturasEspecialesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
+            this.capturasEspecialesToolStripMenuItem.Text = "Capturas Especiales";
+            this.capturasEspecialesToolStripMenuItem.Click += new System.EventHandler(this.capturasEspecialesToolStripMenuItem_Click);
             // 
             // menuItemReportes
             // 
@@ -149,27 +162,7 @@
             this.panelContenedor.Name = "panelContenedor";
             this.panelContenedor.Size = new System.Drawing.Size(900, 560);
             this.panelContenedor.TabIndex = 1;
-            // 
-            // capturaDePercepcionesToolStripMenuItem
-            // 
-            this.capturaDePercepcionesToolStripMenuItem.Name = "capturaDePercepcionesToolStripMenuItem";
-            this.capturaDePercepcionesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
-            this.capturaDePercepcionesToolStripMenuItem.Text = "Captura de Percepciones";
-            this.capturaDePercepcionesToolStripMenuItem.Click += new System.EventHandler(this.capturaDePercepcionesToolStripMenuItem_Click);
-            // 
-            // agregarPercepcionesToolStripMenuItem
-            // 
-            this.agregarPercepcionesToolStripMenuItem.Name = "agregarPercepcionesToolStripMenuItem";
-            this.agregarPercepcionesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
-            this.agregarPercepcionesToolStripMenuItem.Text = "Agregar Percepciones";
-            this.agregarPercepcionesToolStripMenuItem.Click += new System.EventHandler(this.agregarPercepcionesToolStripMenuItem_Click);
-            // 
-            // capturasEspecialesToolStripMenuItem
-            // 
-            this.capturasEspecialesToolStripMenuItem.Name = "capturasEspecialesToolStripMenuItem";
-            this.capturasEspecialesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
-            this.capturasEspecialesToolStripMenuItem.Text = "Capturas Especiales";
-            this.capturasEspecialesToolStripMenuItem.Click += new System.EventHandler(this.capturasEspecialesToolStripMenuItem_Click);
+            this.panelContenedor.Paint += new System.Windows.Forms.PaintEventHandler(this.panelContenedor_Paint);
             // 
             // FormPrincipal
             // 
@@ -205,7 +198,6 @@
         private System.Windows.Forms.ToolStripMenuItem menuItemConsultas;
         private System.Windows.Forms.ToolStripMenuItem cerrarSesiónToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem puestosToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem puestosToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem capturaDePercepcionesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem agregarPercepcionesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem capturasEspecialesToolStripMenuItem;
