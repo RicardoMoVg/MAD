@@ -189,11 +189,29 @@
     <Compile Include="FormCapturaEspeciales.Designer.cs">
       <DependentUpon>FormCapturaEspeciales.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormCatalogos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormCatalogos.Designer.cs">
+      <DependentUpon>FormCatalogos.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormDepartamentos.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormDepartamentos.Designer.cs">
       <DependentUpon>FormDepartamentos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormHSR.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormHSR.Designer.cs">
+      <DependentUpon>FormHSR.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormIncidencias.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormIncidencias.Designer.cs">
+      <DependentUpon>FormIncidencias.cs</DependentUpon>
     </Compile>
     <Compile Include="FormLogIn.cs">
       <SubType>Form</SubType>
@@ -251,8 +269,17 @@
     <EmbeddedResource Include="FormCapturaEspeciales.resx">
       <DependentUpon>FormCapturaEspeciales.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormCatalogos.resx">
+      <DependentUpon>FormCatalogos.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormDepartamentos.resx">
       <DependentUpon>FormDepartamentos.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormHSR.resx">
+      <DependentUpon>FormHSR.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormIncidencias.resx">
+      <DependentUpon>FormIncidencias.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormLogIn.resx">
       <DependentUpon>FormLogIn.cs</DependentUpon>

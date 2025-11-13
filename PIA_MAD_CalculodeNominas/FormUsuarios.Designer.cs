@@ -67,6 +67,7 @@
             this.Controls.Add(this.lblTitulo);
             this.Controls.Add(this.dgvUsuarios);
             this.Name = "FormUsuarios";
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Text = "Gestión de Usuarios";
             this.Load += new System.EventHandler(this.FormUsuarios_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvUsuarios)).EndInit();

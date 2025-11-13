@@ -19,11 +19,7 @@ namespace PIA_MAD_CalculodeNominas
 
         private void FormPrincipal_Load(object sender, EventArgs e)
         {
-            // Opcional: Mostrar quién inició sesión
-            // (Asegúrate de tener un Label o un ToolStripStatusLabel para esto)
-            // lblBienvenida.Text = $"Usuario: {SesionUsuario.NombreCompleto} ({SesionUsuario.Rol})";
 
-            // Llamamos a nuestro nuevo método para configurar el menú
             ConfigurarMenuPorRol();
         }
 
@@ -44,7 +40,7 @@ namespace PIA_MAD_CalculodeNominas
             fh.Show();
         }
 
-        // --- Eventos Click de cada ToolStripMenuItem del menú principal ---
+        
 
         private void menuItemUsuario_Click(object sender, EventArgs e)
         {
@@ -73,12 +69,12 @@ namespace PIA_MAD_CalculodeNominas
 
         private void menuItemConsultas_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("¡Vista de Consultas! Aquí se realizarán búsquedas avanzadas.", "Información");
+           
         }
 
         private void cerrarSesionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            AbrirFormularioEnPanel(new FormHSR());
         }
 
         private void puestosToolStripMenuItem_Click(object sender, EventArgs e)
@@ -88,7 +84,7 @@ namespace PIA_MAD_CalculodeNominas
 
         private void capturaDePercepcionesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Le pasamos "this" (la instancia actual de FormPrincipal) al constructor
+            
             AbrirFormularioEnPanel(new FormCapturaDedPer(this));
         }
 

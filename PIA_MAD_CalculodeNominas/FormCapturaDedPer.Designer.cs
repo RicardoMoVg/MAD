@@ -1,4 +1,6 @@
-﻿namespace PIA_MAD_CalculodeNominas
+﻿using System.Windows.Forms;
+
+namespace PIA_MAD_CalculodeNominas
 {
     partial class FormCapturaDedPer
     {
@@ -155,12 +157,14 @@
             this.Controls.Add(this.lblEmpleados);
             this.MinimumSize = new System.Drawing.Size(800, 513);
             this.Name = "FormCapturaDedPer";
+            // *** ESTA ES LA MODIFICACIÓN CLAVE ***
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            // *************************************
             this.Text = "Captura de Percepciones y Deducciones";
             this.Load += new System.EventHandler(this.FormCapturaDedPer_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvEmpleados)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion

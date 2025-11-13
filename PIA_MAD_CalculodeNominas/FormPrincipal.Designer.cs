@@ -51,6 +51,7 @@
             this.menuStripPrincipal.Dock = System.Windows.Forms.DockStyle.None;
             this.menuStripPrincipal.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.menuStripPrincipal.ForeColor = System.Drawing.Color.White;
+            this.menuStripPrincipal.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStripPrincipal.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuItemUsuario,
             this.menuItemCatalogos,
@@ -60,7 +61,8 @@
             this.menuItemConsultas});
             this.menuStripPrincipal.Location = new System.Drawing.Point(0, 10);
             this.menuStripPrincipal.Name = "menuStripPrincipal";
-            this.menuStripPrincipal.Size = new System.Drawing.Size(665, 24);
+            this.menuStripPrincipal.Padding = new System.Windows.Forms.Padding(4, 2, 0, 2);
+            this.menuStripPrincipal.Size = new System.Drawing.Size(663, 24);
             this.menuStripPrincipal.TabIndex = 0;
             this.menuStripPrincipal.Text = "menuStrip1";
             // 
@@ -77,8 +79,8 @@
             // cerrarSesiónToolStripMenuItem
             // 
             this.cerrarSesiónToolStripMenuItem.Name = "cerrarSesiónToolStripMenuItem";
-            this.cerrarSesiónToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
-            this.cerrarSesiónToolStripMenuItem.Text = "Cerrar Sesión";
+            this.cerrarSesiónToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.cerrarSesiónToolStripMenuItem.Text = "EMPRESA";
             this.cerrarSesiónToolStripMenuItem.Click += new System.EventHandler(this.cerrarSesionToolStripMenuItem_Click);
             // 
             // menuItemCatalogos
@@ -94,7 +96,7 @@
             // puestosToolStripMenuItem
             // 
             this.puestosToolStripMenuItem.Name = "puestosToolStripMenuItem";
-            this.puestosToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.puestosToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
             this.puestosToolStripMenuItem.Text = "Puestos";
             this.puestosToolStripMenuItem.Click += new System.EventHandler(this.puestosToolStripMenuItem_Click);
             // 
@@ -129,14 +131,14 @@
             // 
             this.agregarPercepcionesToolStripMenuItem.Name = "agregarPercepcionesToolStripMenuItem";
             this.agregarPercepcionesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
-            this.agregarPercepcionesToolStripMenuItem.Text = "Agregar Percepciones";
+            this.agregarPercepcionesToolStripMenuItem.Text = "Agregar Conceptos";
             this.agregarPercepcionesToolStripMenuItem.Click += new System.EventHandler(this.agregarPercepcionesToolStripMenuItem_Click);
             // 
             // capturasEspecialesToolStripMenuItem
             // 
             this.capturasEspecialesToolStripMenuItem.Name = "capturasEspecialesToolStripMenuItem";
             this.capturasEspecialesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
-            this.capturasEspecialesToolStripMenuItem.Text = "Capturas Especiales";
+            this.capturasEspecialesToolStripMenuItem.Text = "Capturas Programadas";
             this.capturasEspecialesToolStripMenuItem.Click += new System.EventHandler(this.capturasEspecialesToolStripMenuItem_Click);
             // 
             // menuItemReportes

@@ -13,40 +13,48 @@ namespace PIA_MAD_CalculodeNominas
 {
     public partial class FormUsuarios : Form
     {
-        // ⚠️ IMPORTANTE: Reemplaza esta cadena con tu ConnectionString real.
-        // Asumiendo autenticación de Windows para el ejemplo.
-        private const string ConnectionString = "Data Source=YourServerName;Initial Catalog=db_preparatoria_hsr;Integrated Security=True";
+        private NominasDAL dal = new NominasDAL();
 
         public FormUsuarios()
         {
             InitializeComponent();
         }
 
-        private void FormUsuarios_Load(object sender, EventArgs e)
+        // 1. Convertir el Load en Asíncrono
+        private async void FormUsuarios_Load(object sender, EventArgs e)
         {
-            CargarUsuarios();
+            // 3. Llamar al método asíncrono usando await
+            await CargarUsuariosAsync();
         }
 
-        private void CargarUsuarios()
+        private async Task CargarUsuariosAsync()
         {
-            // Query para seleccionar solo los nombres y el tipo de usuario.
-            string query = "SELECT nombres, tipoUsuario FROM dbo.USUARIO WHERE activo = 1"; // Solo usuarios activos
+            string query = "SELECT nombres, tipoUsuario FROM dbo.USUARIO WHERE activo = 1";
 
-            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            using (SqlConnection connection = dal.GetConnection())
             {
                 try
                 {
-                    connection.Open();
-                    SqlDataAdapter dataAdapter = new SqlDataAdapter(query, connection);
-                    DataTable dataTable = new DataTable();
+                    // 4. Usar el método OpenAsync() en lugar de Open()
+                    await connection.OpenAsync();
 
-                    // Rellena el DataTable con los datos de la consulta
-                    dataAdapter.Fill(dataTable);
+                    // Nota: SqlDataAdapter.Fill no tiene una versión async oficial que devuelva Task.
+                    // Para lograr asincronía real con el DataAdapter, debemos envolver la ejecución
+                    // en un Task.Run, o usar un SqlDataReader.
 
-                    // Asigna el DataTable como fuente de datos del DataGridView
+                    // Opción más simple y efectiva para DataAdapter en este contexto:
+                    DataTable dataTable = await Task.Run(() =>
+                    {
+                        SqlDataAdapter dataAdapter = new SqlDataAdapter(query, connection);
+                        DataTable dt = new DataTable();
+                        dataAdapter.Fill(dt); // Esta es la parte que ejecuta la consulta en otro hilo
+                        return dt;
+                    });
+
+
+                    // Esto se ejecuta de vuelta en el hilo de la UI
                     dgvUsuarios.DataSource = dataTable;
 
-                    // Opcional: Establecer nombres de encabezado más amigables
                     if (dgvUsuarios.Columns.Contains("nombres"))
                     {
                         dgvUsuarios.Columns["nombres"].HeaderText = "Nombre Completo";
@@ -56,23 +64,20 @@ namespace PIA_MAD_CalculodeNominas
                         dgvUsuarios.Columns["tipoUsuario"].HeaderText = "Tipo de Usuario";
                     }
 
-                    // Opcional: Auto-ajustar las columnas
                     dgvUsuarios.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
 
                 }
                 catch (SqlException ex)
                 {
-                    MessageBox.Show("Error al conectar o cargar los datos de la base de datos:\n" + ex.Message,
-                                    "Error de Conexión",
-                                    MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
+                    MessageBox.Show("Error al cargar los datos: " + ex.Message, "Error de BD", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ocurrió un error inesperado:\n" + ex.Message,
-                                    "Error",
-                                    MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
+                    MessageBox.Show("Ocurrió un error inesperado: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    // lblEstado.Text = "Datos cargados.";
                 }
             }
         }
