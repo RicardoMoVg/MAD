@@ -19,8 +19,27 @@ namespace PIA_MAD_CalculodeNominas
 
         private void FormPrincipal_Load(object sender, EventArgs e)
         {
+            try
+            {
+                // Código que sospechamos puede fallar
+                ConfigurarMenuPorRol();
+                AbrirFormularioEnPanel(new FormInicio());
+            }
+            catch (Exception ex)
+            {
+                // Si algo falla, la aplicación ya no se cerrará.
+                // En su lugar, nos mostrará el error exacto.
+                MessageBox.Show(
+                    "Error fatal al cargar el formulario principal: \n\n" +
+                    "Mensaje: " + ex.Message + "\n\n" +
+                    "Origen: " + ex.StackTrace, // Te dice la línea exacta del error
+                    "Error de Carga",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
 
-            ConfigurarMenuPorRol();
+                // Opcional: Cierra la aplicación de forma controlada
+                Application.Exit();
+            }
         }
 
         /// <summary>
@@ -49,7 +68,7 @@ namespace PIA_MAD_CalculodeNominas
 
         private void menuItemCatalogos_Click(object sender, EventArgs e)
         {
-            AbrirFormularioEnPanel(new FormDepartamentos());
+            AbrirFormularioEnPanel(new FormCatalogos());
         }
 
         private void menuItemRecursosHumanos_Click(object sender, EventArgs e)

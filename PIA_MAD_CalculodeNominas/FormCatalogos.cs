@@ -24,7 +24,7 @@ namespace PIA_MAD_CalculodeNominas
         {
             CargarDepartamentos();
             CargarPuestos();
-            AplicarSeguridad();
+            /*AplicarSeguridad()*/;
             LimpiarFormularioDepto();
             LimpiarFormularioPuesto();
         }

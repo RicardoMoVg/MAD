@@ -14,7 +14,7 @@ namespace PIA_MAD_CalculodeNominas
 {
     public partial class FormDepartamentos : Form
     {
-        // Enum para un manejo de estado claro y profesional
+        
         private enum EstadoFormulario
         {
             Navegando,
@@ -26,6 +26,8 @@ namespace PIA_MAD_CalculodeNominas
 
         private NominasDAL dal = new NominasDAL();
 
+        private bool formularioCargado = false;
+
         public FormDepartamentos()
         {
             InitializeComponent();
@@ -33,14 +35,12 @@ namespace PIA_MAD_CalculodeNominas
 
         private void FormDepartamentos_Load(object sender, EventArgs e)
         {
-            // 1. Cargar el DataGridView (simulado por ahora)
-            CargarDepartamentos();
 
-            // 2. Cargar el ComboBox de Jefes (simulado)
             CargarJefes();
-
-            // 3. Establecer el estado inicial del formulario
+            CargarDepartamentos();
             ConfigurarEstado(EstadoFormulario.Navegando);
+            formularioCargado = true;
+            dgvDepartamentos_SelectionChanged(null, null);
         }
 
         #region Lógica de Carga de Datos (Simulada)
@@ -78,8 +78,8 @@ namespace PIA_MAD_CalculodeNominas
                     DataTable dt = new DataTable();
                     da.Fill(dt);
                     cmbJefeDepto.DataSource = dt;
-                    cmbJefeDepto.DisplayMember = "NombreCompleto";
-                    cmbJefeDepto.ValueMember = "EmpleadoID";
+                    cmbJefeDepto.DisplayMember = "nombreCompleto";
+                    cmbJefeDepto.ValueMember = "idEmpleado";
                     cmbJefeDepto.SelectedIndex = -1;
                 }
             }

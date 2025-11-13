@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Data.SqlClient;
+using System.Text.RegularExpressions; 
 
 namespace PIA_MAD_CalculodeNominas
 {
@@ -24,42 +25,65 @@ namespace PIA_MAD_CalculodeNominas
         {
             CargarEmpleados();
             CargarComboBoxes();
-            AplicarSeguridad();
-            LimpiarFormulario(); // Empezamos en blanco
+            //AplicarSeguridad(); 
+            LimpiarFormulario();
         }
 
-        /// <summary>
-        /// Oculta botones si el usuario no es Administrador.
-        /// </summary>
         private void AplicarSeguridad()
         {
-            // Asumimos que "Admin" es el rol de Recursos Humanos
-            if (SesionUsuario.Rol != "Admin")
-            {
-                btnGuardar.Enabled = false;
-                btnDarDeBaja.Enabled = false;
+            bool esAdmin = (SesionUsuario.Rol == "Admin");
 
-                // Opcional: hacer todos los campos ReadOnly
-                foreach (Control ctrl in this.Controls)
-                {
-                    if (ctrl is TextBox) ((TextBox)ctrl).ReadOnly = true;
-                    if (ctrl is ComboBox) ((ComboBox)ctrl).Enabled = false;
-                    if (ctrl is DateTimePicker) ((DateTimePicker)ctrl).Enabled = false;
-                    if (ctrl is NumericUpDown) ((NumericUpDown)ctrl).ReadOnly = true;
-                }
-            }
+            btnGuardar.Enabled = esAdmin;
+            btnDarDeBaja.Enabled = esAdmin;
+            HabilitarControlesRecursivo(this, esAdmin);
         }
 
-        /// <summary>
-        /// Carga el DataGridView con empleados activos usando el nuevo SP.
-        /// </summary>
+        private void HabilitarControlesRecursivo(Control contenedor, bool habilitar)
+        {
+            foreach (Control ctrl in contenedor.Controls)
+            {
+                if (ctrl is TextBox txt)
+                {
+                    // El ID y el de Buscar NUNCA se deshabilitan (son ReadOnly o de consulta)
+                    if (txt.Name != "txtIDEmpleado" && txt.Name != "txtBuscar")
+                    {
+                        txt.ReadOnly = !habilitar;
+                    }
+                }
+                else if (ctrl is ComboBox cmb)
+                {
+                    cmb.Enabled = habilitar;
+                }
+                else if (ctrl is DateTimePicker dtp)
+                {
+                    dtp.Enabled = habilitar;
+                }
+                else if (ctrl is NumericUpDown num)
+                {
+                    num.ReadOnly = !habilitar;
+                }
+                else if (ctrl is Button btn && (btn.Name.Contains("Calcular") || btn.Name.Contains("Limpiar")))
+                {
+                    btn.Enabled = habilitar; // Habilita/Deshabilita botones de utilidad
+                }
+
+                // Si el control tiene más controles dentro (Panel, GroupBox, TabPage), seguir buscando
+                if (ctrl.HasChildren)
+                {
+                    HabilitarControlesRecursivo(ctrl, habilitar);
+                }
+            }
+            // Nos aseguramos que el ID siempre sea ReadOnly
+            txtIDEmpleado.ReadOnly = true;
+        }
+
+
         private void CargarEmpleados()
         {
             try
             {
                 using (SqlConnection cnn = dal.GetConnection())
                 {
-                    // ¡NUEVO SP!
                     using (SqlCommand cmd = new SqlCommand("sp_ConsultarEmpleadosActivos", cnn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -76,25 +100,22 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-        /// <summary>
-        /// Carga los catálogos (Puestos y Departamentos)
-        /// </summary>
         private void CargarComboBoxes()
         {
             try
             {
                 using (SqlConnection cnn = dal.GetConnection())
                 {
-                    // Cargamos Departamentos (asumiendo que tienen 'activo')
-                    SqlDataAdapter daDepto = new SqlDataAdapter("SELECT idDepartamento, nombre FROM Departamento WHERE activo = 1", cnn);
+                    SqlDataAdapter daDepto = new SqlDataAdapter("sp_Departamento_GetActivos", cnn);
+                    daDepto.SelectCommand.CommandType = CommandType.StoredProcedure;
                     DataTable dtDepto = new DataTable();
                     daDepto.Fill(dtDepto);
                     cmbDepartamento.DataSource = dtDepto;
                     cmbDepartamento.ValueMember = "idDepartamento";
                     cmbDepartamento.DisplayMember = "nombre";
 
-                    // Cargamos Puestos (asumiendo que tienen 'activo')
-                    SqlDataAdapter daPuesto = new SqlDataAdapter("SELECT idPuesto, nombre FROM Puesto WHERE activo = 1", cnn);
+                    SqlDataAdapter daPuesto = new SqlDataAdapter("sp_Puesto_GetActivos", cnn);
+                    daPuesto.SelectCommand.CommandType = CommandType.StoredProcedure;
                     DataTable dtPuesto = new DataTable();
                     daPuesto.Fill(dtPuesto);
                     cmbPuesto.DataSource = dtPuesto;
@@ -109,17 +130,88 @@ namespace PIA_MAD_CalculodeNominas
         }
 
         /// <summary>
-        /// Evento principal del botón Guardar.
-        /// Decide si insertar o actualizar.
+        /// --- ¡¡CORREGIDO Y BLINDADO!! ---
+        /// Evento principal del botón Guardar con todas las validaciones.
         /// </summary>
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            // --- ¡VALIDACIÓN! (Ejemplo) ---
-            if (string.IsNullOrEmpty(txtNombreCompleto.Text) || string.IsNullOrEmpty(txtCURP.Text) || numSalarioDiario.Value <= 0)
+            // --- INICIO DE VALIDACIONES ---
+
+            // 1. Campos obligatorios
+            if (string.IsNullOrEmpty(txtNombreCompleto.Text) || numSalarioDiario.Value <= 0)
             {
-                MessageBox.Show("Los campos Nombre, CURP y Salario Diario son obligatorios.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Los campos Nombre Completo y Salario Diario son obligatorios.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNombreCompleto.Focus();
                 return;
             }
+
+            // 2. CURP (18 Alfanuméricos)
+            string curp = txtCURP.Text;
+            if (string.IsNullOrEmpty(curp))
+            {
+                MessageBox.Show("El campo CURP es obligatorio.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCURP.Focus();
+                return;
+            }
+            if (!Regex.IsMatch(curp, @"^[A-Za-z0-9]{18}$"))
+            {
+                MessageBox.Show("El formato del CURP es incorrecto.\nDebe contener 18 caracteres (letras y números).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCURP.Focus();
+                return;
+            }
+
+            // 3. RFC (13 Alfanuméricos)
+            string rfc = txtRFC.Text;
+            if (string.IsNullOrEmpty(rfc))
+            {
+                MessageBox.Show("El campo RFC es obligatorio.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtRFC.Focus();
+                return;
+            }
+            if (!Regex.IsMatch(rfc, @"^[A-Za-z0-9]{13}$"))
+            {
+                MessageBox.Show("El formato del RFC es incorrecto.\nDebe contener 13 caracteres (letras y números).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtRFC.Focus();
+                return;
+            }
+
+            // 4. Teléfono (10 Números)
+            string telefono = txtTelefono.Text;
+            if (!string.IsNullOrEmpty(telefono) && !Regex.IsMatch(telefono, @"^\d{10}$"))
+            {
+                MessageBox.Show("El Teléfono es incorrecto.\nDebe contener 10 dígitos numéricos (ej. 8112345678).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtTelefono.Focus();
+                return;
+            }
+
+            // 5. Correo (Formato básico)
+            string correo = txtCorreo.Text;
+            if (!string.IsNullOrEmpty(correo) && !Regex.IsMatch(correo, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            {
+                MessageBox.Show("El formato del Correo es incorrecto (ej. usuario@dominio.com).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCorreo.Focus();
+                return;
+            }
+
+            // 6. Registro Patronal (1 Letra, 10 Números)
+            string regPatronal = txtRegistroPatronal.Text;
+            if (!string.IsNullOrEmpty(regPatronal) && !Regex.IsMatch(regPatronal, @"^[A-Za-z]\d{10}$"))
+            {
+                MessageBox.Show("El Registro Patronal es incorrecto.\nDebe ser 1 letra seguida de 10 números (ej. A1234567890).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtRegistroPatronal.Focus();
+                return;
+            }
+
+            // 7. Tarjeta (12 Números)
+            string numCuenta = txtNumCuenta.Text;
+            if (!string.IsNullOrEmpty(numCuenta) && !Regex.IsMatch(numCuenta, @"^\d{12}$"))
+            {
+                MessageBox.Show("El Número de Cuenta (Tarjeta) es incorrecto.\nDebe contener 12 dígitos numéricos.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNumCuenta.Focus();
+                return;
+            }
+
+            // --- FIN DE VALIDACIONES ---
 
             try
             {
@@ -147,10 +239,6 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-        /// <summary>
-        /// ¡NUEVA LÓGICA SIMPLIFICADA!
-        /// Llama al SP para INSERTAR un nuevo empleado.
-        /// </summary>
         private void GuardarNuevoEmpleado()
         {
             using (SqlConnection cnn = dal.GetConnection())
@@ -159,7 +247,6 @@ namespace PIA_MAD_CalculodeNominas
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // Mapeo de parámetros
                     cmd.Parameters.AddWithValue("@nombreCompleto", txtNombreCompleto.Text);
                     cmd.Parameters.AddWithValue("@fechaNac", dtpFechaNacimiento.Value);
                     cmd.Parameters.AddWithValue("@CURP", txtCURP.Text);
@@ -167,7 +254,7 @@ namespace PIA_MAD_CalculodeNominas
                     cmd.Parameters.AddWithValue("@RFC", txtRFC.Text);
                     cmd.Parameters.AddWithValue("@banco", txtBanco.Text);
                     cmd.Parameters.AddWithValue("@numCuenta", txtNumCuenta.Text);
-                    cmd.Parameters.AddWithValue("@idPrepa", 1); // Asumimos 1 (Honkai Star Rail)
+                    cmd.Parameters.AddWithValue("@idPrepa", 1);
                     cmd.Parameters.AddWithValue("@calle", txtCalle.Text);
                     cmd.Parameters.AddWithValue("@numExt", txtNumExt.Text);
                     cmd.Parameters.AddWithValue("@numInt", (object)txtNumInt.Text ?? DBNull.Value);
@@ -188,10 +275,6 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-        /// <summary>
-        /// ¡NUEVA LÓGICA SIMPLIFICADA!
-        /// Llama al SP para ACTUALIZAR un empleado.
-        /// </summary>
         private void ActualizarEmpleadoExistente()
         {
             using (SqlConnection cnn = dal.GetConnection())
@@ -200,7 +283,6 @@ namespace PIA_MAD_CalculodeNominas
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // Mapeo de parámetros
                     cmd.Parameters.AddWithValue("@IDEmpleado", Convert.ToInt32(txtIDEmpleado.Text));
                     cmd.Parameters.AddWithValue("@nombreCompleto", txtNombreCompleto.Text);
                     cmd.Parameters.AddWithValue("@fechaNac", dtpFechaNacimiento.Value);
@@ -209,7 +291,7 @@ namespace PIA_MAD_CalculodeNominas
                     cmd.Parameters.AddWithValue("@RFC", txtRFC.Text);
                     cmd.Parameters.AddWithValue("@banco", txtBanco.Text);
                     cmd.Parameters.AddWithValue("@numCuenta", txtNumCuenta.Text);
-                    cmd.Parameters.AddWithValue("@idPrepa", 1); // Asumimos 1
+                    cmd.Parameters.AddWithValue("@idPrepa", 1);
                     cmd.Parameters.AddWithValue("@calle", txtCalle.Text);
                     cmd.Parameters.AddWithValue("@numExt", txtNumExt.Text);
                     cmd.Parameters.AddWithValue("@numInt", (object)txtNumInt.Text ?? DBNull.Value);
@@ -230,10 +312,6 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-        /// <summary>
-        /// ¡NUEVO EVENTO!
-        /// Llama al SP para la BAJA LÓGICA.
-        /// </summary>
         private void btnDarDeBaja_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(txtIDEmpleado.Text))
@@ -270,17 +348,12 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-        /// <summary>
-        /// ¡NUEVA LÓGICA SIMPLIFICADA!
-        /// Al hacer clic en una celda, carga la info del empleado.
-        /// </summary>
         private void dgvEmpleados_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return; // No es el encabezado
+            if (e.RowIndex < 0) return;
 
             try
             {
-                // Obtenemos el ID de la fila seleccionada
                 int idEmpleado = Convert.ToInt32(dgvEmpleados.Rows[e.RowIndex].Cells["idEmpleado"].Value);
 
                 using (SqlConnection cnn = dal.GetConnection())
@@ -294,7 +367,6 @@ namespace PIA_MAD_CalculodeNominas
 
                         if (reader.Read())
                         {
-                            // Llenamos el formulario
                             txtIDEmpleado.Text = reader["idEmpleado"].ToString();
                             txtNombreCompleto.Text = reader["nombreCompleto"].ToString();
                             dtpFechaNacimiento.Value = Convert.ToDateTime(reader["fechaNac"]);
@@ -312,6 +384,7 @@ namespace PIA_MAD_CalculodeNominas
                             txtColonia.Text = reader["colonia"].ToString();
                             txtMunicipio.Text = reader["municipio"].ToString();
                             txtEstado.Text = reader["estado"].ToString();
+
                             txtCP.Text = reader["codigoPostal"].ToString();
                             numSalarioDiario.Value = Convert.ToDecimal(reader["SalarioDiario"]);
                             cmbDepartamento.SelectedValue = Convert.ToInt32(reader["idDepartamento"]);
@@ -327,9 +400,6 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-        /// <summary>
-        /// Limpia todos los campos del formulario.
-        /// </summary>
         private void LimpiarFormulario()
         {
             txtIDEmpleado.Text = "";
@@ -351,23 +421,22 @@ namespace PIA_MAD_CalculodeNominas
             txtEstado.Text = "";
             txtCP.Text = "";
             numSalarioDiario.Value = 0;
+            txtSalarioMensual.Text = "";
             cmbDepartamento.SelectedIndex = -1;
             cmbPuesto.SelectedIndex = -1;
         }
 
-        // Evento para el botón de limpiar
         private void btnLimpiar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
         }
 
-        // Evento para la "reversa" del salario
         private void btnCalcularSalarioD_Click(object sender, EventArgs e)
         {
             try
             {
                 decimal salarioMensual = decimal.Parse(txtSalarioMensual.Text);
-                decimal salarioDiario = salarioMensual / 30m; // Usar 'm' para decimal
+                decimal salarioDiario = salarioMensual / 30m;
                 numSalarioDiario.Value = decimal.Round(salarioDiario, 2);
             }
             catch (Exception ex)

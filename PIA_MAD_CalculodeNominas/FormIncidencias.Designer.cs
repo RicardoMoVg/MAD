@@ -103,7 +103,7 @@
             this.label3.Location = new System.Drawing.Point(20, 197);
             this.label3.Name = "label3";
             this.label3.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
-            this.label3.Size = new System.Drawing.Size(155, 27);
+            this.label3.Size = new System.Drawing.Size(151, 27);
             this.label3.TabIndex = 1;
             this.label3.Text = "Incidencias Registradas";
             // 
@@ -162,7 +162,7 @@
             this.lblMonto.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.lblMonto.Location = new System.Drawing.Point(401, 98);
             this.lblMonto.Name = "lblMonto";
-            this.lblMonto.Size = new System.Drawing.Size(49, 17);
+            this.lblMonto.Size = new System.Drawing.Size(50, 17);
             this.lblMonto.TabIndex = 9;
             this.lblMonto.Text = "Monto:";
             // 
@@ -183,7 +183,7 @@
             this.label7.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.label7.Location = new System.Drawing.Point(14, 98);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(66, 17);
+            this.label7.Size = new System.Drawing.Size(67, 17);
             this.label7.TabIndex = 7;
             this.label7.Text = "Concepto:";
             // 
@@ -237,7 +237,7 @@
             this.label1.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.label1.Location = new System.Drawing.Point(14, 57);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(69, 17);
+            this.label1.Size = new System.Drawing.Size(70, 17);
             this.label1.TabIndex = 2;
             this.label1.Text = "Empleado:";
             // 
@@ -258,7 +258,7 @@
             this.lblDeptoID.Font = new System.Drawing.Font("Segoe UI", 9.75F);
             this.lblDeptoID.Location = new System.Drawing.Point(14, 17);
             this.lblDeptoID.Name = "lblDeptoID";
-            this.lblDeptoID.Size = new System.Drawing.Size(103, 17);
+            this.lblDeptoID.Size = new System.Drawing.Size(104, 17);
             this.lblDeptoID.TabIndex = 0;
             this.lblDeptoID.Text = "Periodo Abierto:";
             // 
@@ -279,7 +279,7 @@
             this.lblTitulo.ForeColor = System.Drawing.Color.White;
             this.lblTitulo.Location = new System.Drawing.Point(12, 15);
             this.lblTitulo.Name = "lblTitulo";
-            this.lblTitulo.Size = new System.Drawing.Size(236, 30);
+            this.lblTitulo.Size = new System.Drawing.Size(239, 30);
             this.lblTitulo.TabIndex = 0;
             this.lblTitulo.Text = "Registro de Incidencias";
             // 

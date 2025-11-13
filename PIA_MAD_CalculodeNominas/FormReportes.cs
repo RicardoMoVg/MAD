@@ -229,7 +229,6 @@ namespace PIA_MAD_CalculodeNominas
         private List<string> ObtenerAniosDesdeBD()
         {
             List<string> años = new List<string>();
-            // ¡CORRECCIÓN! Usamos la clase DAL que ya funciona
             using (SqlConnection conn = dal.GetConnection())
             using (SqlCommand cmd = new SqlCommand("SELECT DISTINCT año FROM Nomina ORDER BY año", conn))
             {
@@ -237,10 +236,16 @@ namespace PIA_MAD_CalculodeNominas
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    años.Add(reader.GetInt32(0).ToString());
+
+                    if (!reader.IsDBNull(0))
+                    {
+
+                        años.Add(reader.GetInt32(0).ToString());
+                    }
+
                 }
             }
-            // Si no hay nóminas, añade el año actual como opción
+            
             if (años.Count == 0)
             {
                 años.Add(DateTime.Now.Year.ToString());
