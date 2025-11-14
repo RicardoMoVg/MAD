@@ -16,6 +16,7 @@ namespace PIA_MAD_CalculodeNominas
         private NominasDAL dal = new NominasDAL();
         private FormPrincipal _form1;
 
+
         public FormAgregarPercepciones(FormPrincipal menu)
         {
             InitializeComponent();
@@ -28,6 +29,7 @@ namespace PIA_MAD_CalculodeNominas
             InicializarCombos();
             ConfigurarGrid(); // ¡Configura el grid ANTES de cargar datos!
             ConfigurarEstado(true);
+
             CargarConceptos(); // Carga los datos
             cmbCuotaPorcentaje_SelectedIndexChanged(null, null);
         }

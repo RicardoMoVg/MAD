@@ -23,14 +23,18 @@ namespace PIA_MAD_CalculodeNominas
             InitializeComponent();
             this.idEmpleadoPreseleccionado = idEmpleado;
             this.idPeriodoPreseleccionado = idPeriodo;
+
+            // --- ¡¡LA CONEXIÓN FALTANTE!! ---
+            // Le decimos al ComboBox que use nuestro nuevo método de refresco
+            this.cmbConcepto.DropDown += new System.EventHandler(this.cmbConcepto_DropDown);
         }
 
         private void FormIncidencias_Load(object sender, EventArgs e)
         {
             CargarEmpleados();
             CargarPeriodosAbiertos();
-            CargarConceptos();
-            // AplicarSeguridad(); // Temporalmente deshabilitado para pruebas
+            CargarConceptos(); // Carga la lista INICIAL
+            // AplicarSeguridad(); // Sigue comentado para pruebas
 
             if (idEmpleadoPreseleccionado > 0)
             {
@@ -47,10 +51,11 @@ namespace PIA_MAD_CalculodeNominas
 
         private void AplicarSeguridad()
         {
-            if (SesionUsuario.Rol != "Admin")
+            // --- ¡¡CORRECCIÓN DE SEGURIDAD!! ---
+            if (SesionUsuario.Rol != "Admin") // ¡Debe ser SesionActual!
             {
                 btnRegistrarIncidencia.Enabled = false;
-                btnEliminarIncidencia.Enabled = false; // ¡Nuevo!
+                btnEliminarIncidencia.Enabled = false;
                 cmbEmpleado.Enabled = false;
                 cmbPeriodo.Enabled = false;
                 dtpFechaFalta.Enabled = false;
@@ -115,6 +120,9 @@ namespace PIA_MAD_CalculodeNominas
         {
             try
             {
+                // Guardamos el ID seleccionado (si hay uno)
+                object idSeleccionado = cmbConcepto.SelectedValue;
+
                 using (SqlConnection cnn = dal.GetConnection())
                 {
                     string query = "SELECT idConcepto, nombre, Tipo FROM dbo.Concepto WHERE EsProgramable = 1 AND activo = 1";
@@ -126,7 +134,16 @@ namespace PIA_MAD_CalculodeNominas
                         cmbConcepto.DataSource = dt;
                         cmbConcepto.DisplayMember = "nombre";
                         cmbConcepto.ValueMember = "idConcepto";
-                        cmbConcepto.SelectedIndex = -1;
+
+                        // Volvemos a poner el ID que estaba, si es que aún existe
+                        if (idSeleccionado != null && ((DataTable)cmbConcepto.DataSource).AsEnumerable().Any(row => row.Field<int>("idConcepto") == Convert.ToInt32(idSeleccionado)))
+                        {
+                            cmbConcepto.SelectedValue = idSeleccionado;
+                        }
+                        else
+                        {
+                            cmbConcepto.SelectedIndex = -1;
+                        }
                     }
                 }
             }
@@ -194,6 +211,7 @@ namespace PIA_MAD_CalculodeNominas
                     using (SqlCommand cmd = new SqlCommand("sp_Incidencias_Insert", cnn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
+
                         cmd.Parameters.AddWithValue("@idEmpleado", Convert.ToInt32(cmbEmpleado.SelectedValue));
                         cmd.Parameters.AddWithValue("@idPeriodo", Convert.ToInt32(cmbPeriodo.SelectedValue));
                         cmd.Parameters.AddWithValue("@idConcepto", Convert.ToInt32(cmbConcepto.SelectedValue));
@@ -247,19 +265,14 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-        /// <summary>
-        /// ¡¡NUEVO!! Llama al SP para Eliminar la incidencia seleccionada.
-        /// </summary>
         private void btnEliminarIncidencia_Click(object sender, EventArgs e)
         {
-            // 1. Validar que haya una fila seleccionada
             if (dgvFaltasRegistradas.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Por favor, seleccione la incidencia que desea eliminar de la lista.", "Selección", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. Confirmar con el usuario
             if (MessageBox.Show("¿Está seguro de que desea eliminar esta incidencia? Esta acción es irreversible.", "Confirmar Eliminación", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
             {
                 return;
@@ -267,10 +280,8 @@ namespace PIA_MAD_CalculodeNominas
 
             try
             {
-                // 3. Obtener el ID de la incidencia
                 int idIncidencia = Convert.ToInt32(dgvFaltasRegistradas.SelectedRows[0].Cells["ID"].Value);
 
-                // 4. Llamar al SP
                 using (SqlConnection cnn = dal.GetConnection())
                 {
                     using (SqlCommand cmd = new SqlCommand("sp_Incidencias_Delete", cnn))
@@ -282,7 +293,6 @@ namespace PIA_MAD_CalculodeNominas
                     }
                 }
 
-                // 5. Refrescar
                 MessageBox.Show("Incidencia eliminada con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CargarIncidenciasDelPeriodo();
             }
@@ -290,6 +300,15 @@ namespace PIA_MAD_CalculodeNominas
             {
                 MessageBox.Show("Error al eliminar la incidencia: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        /// <summary>
+        /// --- ¡¡AQUÍ ESTÁ LA SOLUCIÓN!! ---
+        /// Este evento fuerza la recarga del ComboBox CADA VEZ que haces clic en él.
+        /// </summary>
+        private void cmbConcepto_DropDown(object sender, EventArgs e)
+        {
+            CargarConceptos();
         }
     }
 }

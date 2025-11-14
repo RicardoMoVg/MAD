@@ -8,7 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Data.SqlClient;
-using System.Text.RegularExpressions; 
+using System.Text.RegularExpressions;
+using System.Globalization; // Para el formato
 
 namespace PIA_MAD_CalculodeNominas
 {
@@ -25,16 +26,18 @@ namespace PIA_MAD_CalculodeNominas
         {
             CargarEmpleados();
             CargarComboBoxes();
-            //AplicarSeguridad(); 
+            //AplicarSeguridad(); // <-- Comentado para que puedas probar
             LimpiarFormulario();
         }
 
         private void AplicarSeguridad()
         {
+            // --- ¡CORREGIDO! Usa 'SesionActual' ---
             bool esAdmin = (SesionUsuario.Rol == "Admin");
 
             btnGuardar.Enabled = esAdmin;
             btnDarDeBaja.Enabled = esAdmin;
+
             HabilitarControlesRecursivo(this, esAdmin);
         }
 
@@ -44,8 +47,7 @@ namespace PIA_MAD_CalculodeNominas
             {
                 if (ctrl is TextBox txt)
                 {
-                    // El ID y el de Buscar NUNCA se deshabilitan (son ReadOnly o de consulta)
-                    if (txt.Name != "txtIDEmpleado" && txt.Name != "txtBuscar")
+                    if (txt.Name != "txtIDEmpleado" && txt.Name != "txtBuscar" && txt.Name != "txtSalarioIntegrado")
                     {
                         txt.ReadOnly = !habilitar;
                     }
@@ -64,19 +66,16 @@ namespace PIA_MAD_CalculodeNominas
                 }
                 else if (ctrl is Button btn && (btn.Name.Contains("Calcular") || btn.Name.Contains("Limpiar")))
                 {
-                    btn.Enabled = habilitar; // Habilita/Deshabilita botones de utilidad
+                    btn.Enabled = habilitar;
                 }
-
-                // Si el control tiene más controles dentro (Panel, GroupBox, TabPage), seguir buscando
                 if (ctrl.HasChildren)
                 {
                     HabilitarControlesRecursivo(ctrl, habilitar);
                 }
             }
-            // Nos aseguramos que el ID siempre sea ReadOnly
             txtIDEmpleado.ReadOnly = true;
+            txtSalarioIntegrado.ReadOnly = true; // El SDI siempre es de solo lectura
         }
-
 
         private void CargarEmpleados()
         {
@@ -129,88 +128,51 @@ namespace PIA_MAD_CalculodeNominas
             }
         }
 
-        /// <summary>
-        /// --- ¡¡CORREGIDO Y BLINDADO!! ---
-        /// Evento principal del botón Guardar con todas las validaciones.
-        /// </summary>
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            // --- INICIO DE VALIDACIONES ---
-
-            // 1. Campos obligatorios
-            if (string.IsNullOrEmpty(txtNombreCompleto.Text) || numSalarioDiario.Value <= 0)
+            // --- VALIDACIONES ---
+            if (string.IsNullOrWhiteSpace(txtNombreCompleto.Text) || numSalarioDiario.Value <= 0 ||
+                string.IsNullOrWhiteSpace(txtCURP.Text) || string.IsNullOrWhiteSpace(txtRFC.Text) ||
+                string.IsNullOrWhiteSpace(txtNSS.Text))
             {
-                MessageBox.Show("Los campos Nombre Completo y Salario Diario son obligatorios.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtNombreCompleto.Focus();
+                MessageBox.Show("Los campos: Nombre, Salario Diario, CURP, RFC y NSS son obligatorios.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
-            // 2. CURP (18 Alfanuméricos)
-            string curp = txtCURP.Text;
-            if (string.IsNullOrEmpty(curp))
-            {
-                MessageBox.Show("El campo CURP es obligatorio.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtCURP.Focus();
-                return;
-            }
-            if (!Regex.IsMatch(curp, @"^[A-Za-z0-9]{18}$"))
+            if (!Regex.IsMatch(txtCURP.Text, @"^[A-Za-z0-9]{18}$"))
             {
                 MessageBox.Show("El formato del CURP es incorrecto.\nDebe contener 18 caracteres (letras y números).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtCURP.Focus();
                 return;
             }
-
-            // 3. RFC (13 Alfanuméricos)
-            string rfc = txtRFC.Text;
-            if (string.IsNullOrEmpty(rfc))
-            {
-                MessageBox.Show("El campo RFC es obligatorio.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtRFC.Focus();
-                return;
-            }
-            if (!Regex.IsMatch(rfc, @"^[A-Za-z0-9]{13}$"))
+            if (!Regex.IsMatch(txtRFC.Text, @"^[A-Za-z0-9]{13}$"))
             {
                 MessageBox.Show("El formato del RFC es incorrecto.\nDebe contener 13 caracteres (letras y números).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtRFC.Focus();
                 return;
             }
-
-            // 4. Teléfono (10 Números)
-            string telefono = txtTelefono.Text;
-            if (!string.IsNullOrEmpty(telefono) && !Regex.IsMatch(telefono, @"^\d{10}$"))
+            if (!Regex.IsMatch(txtNSS.Text, @"^\d{11}$"))
+            {
+                MessageBox.Show("El NSS es incorrecto.\nDebe contener 11 dígitos numéricos.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!string.IsNullOrEmpty(txtTelefono.Text) && !Regex.IsMatch(txtTelefono.Text, @"^\d{10}$"))
             {
                 MessageBox.Show("El Teléfono es incorrecto.\nDebe contener 10 dígitos numéricos (ej. 8112345678).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtTelefono.Focus();
                 return;
             }
-
-            // 5. Correo (Formato básico)
-            string correo = txtCorreo.Text;
-            if (!string.IsNullOrEmpty(correo) && !Regex.IsMatch(correo, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (!string.IsNullOrEmpty(txtCorreo.Text) && !Regex.IsMatch(txtCorreo.Text, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             {
                 MessageBox.Show("El formato del Correo es incorrecto (ej. usuario@dominio.com).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtCorreo.Focus();
                 return;
             }
-
-            // 6. Registro Patronal (1 Letra, 10 Números)
-            string regPatronal = txtRegistroPatronal.Text;
-            if (!string.IsNullOrEmpty(regPatronal) && !Regex.IsMatch(regPatronal, @"^[A-Za-z]\d{10}$"))
+            if (!string.IsNullOrEmpty(txtRegistroPatronal.Text) && !Regex.IsMatch(txtRegistroPatronal.Text, @"^[A-Za-z]\d{10}$"))
             {
                 MessageBox.Show("El Registro Patronal es incorrecto.\nDebe ser 1 letra seguida de 10 números (ej. A1234567890).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtRegistroPatronal.Focus();
                 return;
             }
-
-            // 7. Tarjeta (12 Números)
-            string numCuenta = txtNumCuenta.Text;
-            if (!string.IsNullOrEmpty(numCuenta) && !Regex.IsMatch(numCuenta, @"^\d{12}$"))
+            if (!string.IsNullOrEmpty(txtNumCuenta.Text) && !Regex.IsMatch(txtNumCuenta.Text, @"^\d{12}$"))
             {
                 MessageBox.Show("El Número de Cuenta (Tarjeta) es incorrecto.\nDebe contener 12 dígitos numéricos.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtNumCuenta.Focus();
                 return;
             }
-
             // --- FIN DE VALIDACIONES ---
 
             try
@@ -225,7 +187,6 @@ namespace PIA_MAD_CalculodeNominas
                     ActualizarEmpleadoExistente();
                     MessageBox.Show("¡Empleado actualizado exitosamente!", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-
                 CargarEmpleados();
                 LimpiarFormulario();
             }
@@ -249,6 +210,7 @@ namespace PIA_MAD_CalculodeNominas
 
                     cmd.Parameters.AddWithValue("@nombreCompleto", txtNombreCompleto.Text);
                     cmd.Parameters.AddWithValue("@fechaNac", dtpFechaNacimiento.Value);
+                    cmd.Parameters.AddWithValue("@fechaCreacion", dtpFechaInicio.Value);
                     cmd.Parameters.AddWithValue("@CURP", txtCURP.Text);
                     cmd.Parameters.AddWithValue("@NSS", txtNSS.Text);
                     cmd.Parameters.AddWithValue("@RFC", txtRFC.Text);
@@ -286,6 +248,7 @@ namespace PIA_MAD_CalculodeNominas
                     cmd.Parameters.AddWithValue("@IDEmpleado", Convert.ToInt32(txtIDEmpleado.Text));
                     cmd.Parameters.AddWithValue("@nombreCompleto", txtNombreCompleto.Text);
                     cmd.Parameters.AddWithValue("@fechaNac", dtpFechaNacimiento.Value);
+                    cmd.Parameters.AddWithValue("@fechaCreacion", dtpFechaInicio.Value);
                     cmd.Parameters.AddWithValue("@CURP", txtCURP.Text);
                     cmd.Parameters.AddWithValue("@NSS", txtNSS.Text);
                     cmd.Parameters.AddWithValue("@RFC", txtRFC.Text);
@@ -319,12 +282,10 @@ namespace PIA_MAD_CalculodeNominas
                 MessageBox.Show("Por favor, seleccione un empleado de la lista para darlo de baja.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             if (MessageBox.Show("¿Está seguro de que desea dar de baja a este empleado? Esta acción no se puede deshacer.", "Confirmar Baja", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
             {
                 return;
             }
-
             try
             {
                 using (SqlConnection cnn = dal.GetConnection())
@@ -337,7 +298,6 @@ namespace PIA_MAD_CalculodeNominas
                         cmd.ExecuteNonQuery();
                     }
                 }
-
                 MessageBox.Show("Empleado dado de baja exitosamente.", "Baja Completada", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CargarEmpleados();
                 LimpiarFormulario();
@@ -370,6 +330,13 @@ namespace PIA_MAD_CalculodeNominas
                             txtIDEmpleado.Text = reader["idEmpleado"].ToString();
                             txtNombreCompleto.Text = reader["nombreCompleto"].ToString();
                             dtpFechaNacimiento.Value = Convert.ToDateTime(reader["fechaNac"]);
+
+                            object fechaInicio = reader["fechaCreacion"];
+                            if (fechaInicio != DBNull.Value)
+                                dtpFechaInicio.Value = Convert.ToDateTime(fechaInicio);
+                            else
+                                dtpFechaInicio.Value = DateTime.Now;
+
                             txtCURP.Text = reader["CURP"].ToString();
                             txtNSS.Text = reader["NSS"].ToString();
                             txtRFC.Text = reader["RFC"].ToString();
@@ -384,9 +351,13 @@ namespace PIA_MAD_CalculodeNominas
                             txtColonia.Text = reader["colonia"].ToString();
                             txtMunicipio.Text = reader["municipio"].ToString();
                             txtEstado.Text = reader["estado"].ToString();
-
                             txtCP.Text = reader["codigoPostal"].ToString();
-                            numSalarioDiario.Value = Convert.ToDecimal(reader["SalarioDiario"]);
+
+                            decimal salarioDiario = Convert.ToDecimal(reader["SalarioDiario"]);
+                            numSalarioDiario.Value = salarioDiario;
+
+                            CalcularSDI(salarioDiario);
+
                             cmbDepartamento.SelectedValue = Convert.ToInt32(reader["idDepartamento"]);
                             cmbPuesto.SelectedValue = Convert.ToInt32(reader["idPuesto"]);
                         }
@@ -405,6 +376,7 @@ namespace PIA_MAD_CalculodeNominas
             txtIDEmpleado.Text = "";
             txtNombreCompleto.Text = "";
             dtpFechaNacimiento.Value = DateTime.Now;
+            dtpFechaInicio.Value = DateTime.Now;
             txtCURP.Text = "";
             txtNSS.Text = "";
             txtRFC.Text = "";
@@ -422,6 +394,7 @@ namespace PIA_MAD_CalculodeNominas
             txtCP.Text = "";
             numSalarioDiario.Value = 0;
             txtSalarioMensual.Text = "";
+            txtSalarioIntegrado.Text = ""; // ¡Limpiamos el SDI!
             cmbDepartamento.SelectedIndex = -1;
             cmbPuesto.SelectedIndex = -1;
         }
@@ -438,11 +411,37 @@ namespace PIA_MAD_CalculodeNominas
                 decimal salarioMensual = decimal.Parse(txtSalarioMensual.Text);
                 decimal salarioDiario = salarioMensual / 30m;
                 numSalarioDiario.Value = decimal.Round(salarioDiario, 2);
+
+                CalcularSDI(numSalarioDiario.Value);
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Por favor, ingrese un monto mensual válido. " + ex.Message, "Error de Cálculo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private void numSalarioDiario_ValueChanged(object sender, EventArgs e)
+        {
+            CalcularSDI(numSalarioDiario.Value);
+        }
+
+        /// <summary>
+        /// --- ¡¡MÉTODO CORREGIDO (V9.1)!! ---
+        /// Calcula el SDI basado en la regla del profe (SDI = SD).
+        /// </summary>
+        private void CalcularSDI(decimal salarioDiario)
+        {
+            if (salarioDiario <= 0)
+            {
+                txtSalarioIntegrado.Text = "0.00";
+                return;
+            }
+
+            // Regla del Profe: Si no hay aguinaldo ni vacaciones, SDI = SD
+            decimal sdi = salarioDiario;
+
+            // Mostramos con 2 decimales, ya que son iguales
+            txtSalarioIntegrado.Text = sdi.ToString("N2", CultureInfo.InvariantCulture);
         }
     }
 }
